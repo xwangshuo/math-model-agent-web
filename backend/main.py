@@ -1,0 +1,44 @@
+import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = FastAPI(
+    title="数模竞赛智能体",
+    description="数学建模竞赛全流程辅助工具 - 选题分析、模型推荐、代码生成、论文排版",
+    version="1.0.0"
+)
+
+# CORS - allow frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Register routers
+from routers.chat import router as chat_router
+from routers.analysis import router as analysis_router
+from routers.recommend import router as recommend_router
+from routers.code_gen import router as code_router
+from routers.paper import router as paper_router
+
+app.include_router(chat_router)
+app.include_router(analysis_router)
+app.include_router(recommend_router)
+app.include_router(code_router)
+app.include_router(paper_router)
+
+@app.get("/api/health")
+async def health():
+    return {"status": "ok", "version": "1.0.0"}
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

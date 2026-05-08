@@ -22,7 +22,7 @@ async def generate_paper(req: PaperRequest):
   "latex": "完整LaTeX代码",
   "preview": "Markdown预览版本（用于网页展示）"
 }}"""
-        reply = ai_service.chat(prompt, [], "paper")
+        reply = ai_service.chat(prompt, [], max_tokens=2048, system_prompt="你是一个LaTeX论文生成专家。生成数学建模竞赛论文格式的LaTeX代码，返回JSON。")
         import json, re
         json_match = re.search(r'\{.*\}', reply, re.DOTALL)
         if json_match:

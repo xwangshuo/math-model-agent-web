@@ -22,7 +22,7 @@ async def analyze(req: AnalysisRequest):
   "analysis": "详细分析（500字左右）",
   "suggestions": ["建议1", "建议2", "建议3"]
 }}"""
-        reply = ai_service.chat(prompt, [], "analysis")
+        reply = ai_service.chat(prompt, [], max_tokens=1024, system_prompt="你是一个数学建模竞赛助手。请根据问题直接回答，返回JSON格式。")
         # Try to parse JSON from response
         import json
         import re

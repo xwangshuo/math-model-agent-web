@@ -27,7 +27,7 @@ async def generate_code(req: CodeGenRequest):
   "explanation": "代码说明和用法",
   "dependencies": ["numpy", "pandas", "matplotlib", ...]
 }}"""
-        reply = ai_service.chat(prompt, [], "code")
+        reply = ai_service.chat(prompt, [], max_tokens=2048, system_prompt="你是一个数学建模代码生成专家。生成可直接运行的Python代码，返回JSON格式。")
         import json, re
         json_match = re.search(r'\{.*\}', reply, re.DOTALL)
         if json_match:

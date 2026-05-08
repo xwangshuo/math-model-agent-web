@@ -27,16 +27,23 @@ from routers.analysis import router as analysis_router
 from routers.recommend import router as recommend_router
 from routers.code_gen import router as code_router
 from routers.paper import router as paper_router
+from routers.system import router as system_router
+from routers.data_analysis import router as data_router
+from routers.problem_bank import router as problem_router
 
 app.include_router(chat_router)
 app.include_router(analysis_router)
 app.include_router(recommend_router)
 app.include_router(code_router)
 app.include_router(paper_router)
+app.include_router(system_router)
+app.include_router(data_router)
+app.include_router(problem_router)
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "version": "1.0.0"}
+    import sys
+    return {"status": "ok", "version": "1.0.0", "python": sys.executable}
 
 if __name__ == "__main__":
     import uvicorn

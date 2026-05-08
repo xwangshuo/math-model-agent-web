@@ -30,7 +30,7 @@ async def recommend(req: RecommendRequest):
   "recommended": "最推荐的模型名称",
   "reason": "推荐理由"
 }}"""
-        reply = ai_service.chat(prompt, [], "recommend")
+        reply = ai_service.chat(prompt, [], max_tokens=1024, system_prompt="你是一个数学模型推荐专家。根据题目信息推荐模型，返回JSON格式。")
         import json, re
         json_match = re.search(r'\{.*\}', reply, re.DOTALL)
         if json_match:

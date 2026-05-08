@@ -22,6 +22,7 @@ class PaperCard(BaseModel):
     highlights: List[str]
     chart_quality: str
     code_quality: str
+    source: Optional[dict] = None
 
 
 class PaperFull(PaperCard):

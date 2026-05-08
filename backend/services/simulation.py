@@ -110,7 +110,8 @@ def start_simulation(problem_ids: list[str], hours: int = 72) -> dict:
             problems.append(p)
 
     if not problems:
-        problems = problem_bank.search_problems(limit=3)
+        all_problems = problem_bank.search_problems()
+        problems = all_problems[:3] if all_problems else []
         if not problems:
             problems = [{"id": "unknown", "title": "模拟赛题", "description": "请从题库选择题目"}]
 

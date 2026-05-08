@@ -4,6 +4,10 @@ import TopicSelection from './pages/TopicSelection.tsx'
 import ProblemBank from './pages/ProblemBank.tsx'
 import ModelKnowledge from './pages/ModelKnowledge.tsx'
 import ExcellentPapers from './pages/ExcellentPapers.tsx'
+import CodeExplainer from './pages/CodeExplainer.tsx'
+import Simulation from './pages/Simulation.tsx'
+import TutorMode from './pages/TutorMode.tsx'
+import TeamAdvisor from './pages/TeamAdvisor.tsx'
 
 export default function App() {
   const [mode, setMode] = useState('chat')
@@ -14,6 +18,10 @@ export default function App() {
       case 'problems': return <ProblemBank />
       case 'models': return <ModelKnowledge />
       case 'papers': return <ExcellentPapers />
+      case 'explain': return <CodeExplainer />
+      case 'simulate': return <Simulation />
+      case 'tutor': return <TutorMode />
+      case 'team': return <TeamAdvisor />
       default: return <ChatPage mode={mode} setMode={setMode} />
     }
   }
@@ -26,7 +34,7 @@ export default function App() {
           <p className="subtitle">数学建模竞赛全流程辅助</p>
         </div>
 
-        <div className="mode-section-label">核心工具</div>
+        <div className="sidebar-section-label">核心工具</div>
         <nav className="mode-nav">
           <button className={`mode-btn ${mode === 'chat' ? 'active' : ''}`} onClick={() => setMode('chat')}>
             <span className="mode-icon">💬</span>
@@ -50,7 +58,7 @@ export default function App() {
           </button>
         </nav>
 
-        <div className="mode-section-label" style={{ marginTop: 20 }}>学习资源</div>
+        <div className="sidebar-section-label" style={{ marginTop: 20 }}>学习资源</div>
         <nav className="mode-nav">
           <button className={`mode-btn ${mode === 'models' ? 'active' : ''}`} onClick={() => setMode('models')}>
             <span className="mode-icon">🧠</span>
@@ -64,13 +72,33 @@ export default function App() {
             <span className="mode-icon">🏆</span>
             <span className="mode-label">优秀论文库</span>
           </button>
+          <button className={`mode-btn ${mode === 'explain' ? 'active' : ''}`} onClick={() => setMode('explain')}>
+            <span className="mode-icon">🔧</span>
+            <span className="mode-label">代码调试助手</span>
+          </button>
         </nav>
 
-        <div className="mode-section-label" style={{ marginTop: 20 }}>赛题专项</div>
+        <div className="sidebar-section-label" style={{ marginTop: 20 }}>赛题专项</div>
         <nav className="mode-nav">
           <button className={`mode-btn ${mode === 'selection' ? 'active' : ''}`} onClick={() => setMode('selection')}>
             <span className="mode-icon">🎯</span>
             <span className="mode-label">选题决策</span>
+          </button>
+          <button className={`mode-btn ${mode === 'simulate' ? 'active' : ''}`} onClick={() => setMode('simulate')}>
+            <span className="mode-icon">🏋️</span>
+            <span className="mode-label">实战训练</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-section-label" style={{ marginTop: 20 }}>团队协作</div>
+        <nav className="mode-nav">
+          <button className={`mode-btn ${mode === 'tutor' ? 'active' : ''}`} onClick={() => setMode('tutor')}>
+            <span className="mode-icon">🧑‍🏫</span>
+            <span className="mode-label">导师模式</span>
+          </button>
+          <button className={`mode-btn ${mode === 'team' ? 'active' : ''}`} onClick={() => setMode('team')}>
+            <span className="mode-icon">👥</span>
+            <span className="mode-label">团队分工</span>
           </button>
         </nav>
 

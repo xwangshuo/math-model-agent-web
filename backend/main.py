@@ -31,6 +31,10 @@ from routers.data_analysis import router as data_router
 from routers.problem_bank import router as problem_router
 from routers.model_knowledge import router as model_knowledge_router
 from routers.excellent_papers import router as papers_router
+from routers.code_explainer import router as code_explainer_router
+from routers.simulation import router as simulation_router
+from routers.tutor_mode import router as tutor_router
+from routers.team_advisor import router as team_router
 
 app.include_router(chat_router)
 app.include_router(analysis_router)
@@ -42,6 +46,10 @@ app.include_router(data_router)
 app.include_router(problem_router)
 app.include_router(model_knowledge_router)
 app.include_router(papers_router)
+app.include_router(code_explainer_router)
+app.include_router(simulation_router)
+app.include_router(tutor_router)
+app.include_router(team_router)
 
 
 @app.get("/api/health")

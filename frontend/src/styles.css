@@ -1588,3 +1588,31 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: var(--text-secondary);
   margin: 0;
 }
+
+/* Source link bar */
+.source-link-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--primary-bg);
+  border: 1px solid #c7d2fe;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.source-link-bar a {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.source-link-bar a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+.source-note {
+  font-size: 11px;
+  color: var(--text-muted);
+}

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
+import 'katex/dist/katex.min.css'
 
 const API_BASE = '/api'
 
@@ -104,7 +107,7 @@ export default function ModelKnowledge() {
               <div className="md-content">
                 {activeTab === 'principles' && (
                   <div className="md-math">
-                    <ReactMarkdown>{selectedModel.math_principles}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{selectedModel.math_principles}</ReactMarkdown>
                     <div className="md-pros-cons">
                       <div className="md-pros">
                         <strong>✅ 优点</strong>

@@ -11,6 +11,7 @@ interface Paper {
   highlights: string[]
   chart_quality: string
   code_quality: string
+  source?: { source_label: string; source_url: string; paper_note: string }
 }
 
 interface PaperFull extends Paper {
@@ -147,6 +148,15 @@ export default function ExcellentPapers() {
                   <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>🏫 {detail.team}</span>
                 </div>
               </div>
+
+              {detail.source && (
+                <div className="source-link-bar">
+                  <a href={detail.source.source_url} target="_blank" rel="noopener noreferrer">
+                    🔗 {detail.source.source_label}
+                  </a>
+                  <span className="source-note">{detail.source.paper_note}</span>
+                </div>
+              )}
 
               {/* 评分 */}
               <div className="detail-section">

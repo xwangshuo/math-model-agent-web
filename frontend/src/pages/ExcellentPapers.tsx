@@ -155,6 +155,20 @@ export default function ExcellentPapers() {
                     🔗 {detail.source.source_label}
                   </a>
                   <span className="source-note">{detail.source.paper_note}</span>
+                  <button className="view-problem-btn" onClick={() => {
+                    // Map paper problem to problem bank ID
+                    const idMap: Record<string, string> = {
+                      'cumcm-2023-a-01': 'cumcm-2023-a',
+                      'cumcm-2023-c-01': 'cumcm-2023-c',
+                      'cumcm-2022-c-01': 'cumcm-2022-c',
+                      'cumcm-2022-a-01': 'cumcm-2022-a',
+                      'cumcm-2021-a-01': 'cumcm-2021-a',
+                      'mcm-2024-b-01': 'mcm-2024-b',
+                      'mcm-2023-c-01': 'mcm-2023-c',
+                    }
+                    const probId = idMap[detail.id]
+                    if (probId) window.open(`/api/problem-bank/${probId}/content`, '_blank')
+                  }}>📄 查看原题全文</button>
                 </div>
               )}
 

@@ -497,6 +497,467 @@ MODEL_CARDS = [
             ["模拟过多", "先少量试探再增加"],
         ],
     },
+    {
+        "id": "integer-programming",
+        "name": "整数规划 (IP)",
+        "category": "优化类",
+        "icon": "🔢",
+        "tags": ["整数", "0-1规划", "组合优化"],
+        "summary": "在线性规划基础上要求部分或全部变量取整数值，适用于选址、背包、指派等问题。",
+        "applicable_scenarios": ["工厂选址(0-1变量)", "背包问题(物品选择)", "旅行商问题(TSP)", "生产调度", "投资决策"],
+        "math_principles": (
+            "**整数规划 = LP + 整数约束**\\n\\n"
+            "$$\\min \\; c^T x$$\\n"
+            "$$\\text{s.t.} \\; Ax \\leq b, \\; x \\geq 0, \\; x \\in \\mathbb{Z}^n$$\\n\\n"
+            "**分支定界法**:\\n"
+            "1. 求解松弛LP（去掉整数约束）\\n"
+            "2. 解非整数: 分两支(向上/向下取整)递归求解\\n"
+            "3. 比较上下界剪枝\\n\\n"
+            "**0-1规划**: 变量只能取0或1, 常用于选址、指派等问题"
+        ),
+        "code_template": (
+            "```python\\n"
+            "import pulp\\n\\n"
+            "prob = pulp.LpProblem('选址问题', pulp.LpMinimize)\\n"
+            "x = [pulp.LpVariable(f'x{{i}}', cat='Binary') for i in range(5)]\\n"
+            "prob += pulp.lpSum([100*x[i] for i in range(5)])  # 建设成本\\n"
+            "prob += pulp.lpSum(x) >= 2  # 至少选2个\\n"
+            "prob.solve(pulp.PULP_CBC_CMD(msg=False))\\n"
+            "selected = [i for i in range(5) if pulp.value(x[i]) > 0.5]\\n"
+            "print(f'选中: {selected}')\\n"
+            "```"
+        ),
+        "pros": ["建模灵活(逻辑约束)", "0-1变量适合决策问题", "中小规模求解高效"],
+        "cons": ["NP-hard大规模求解慢", "分支定界最坏指数时间", "敏感性分析困难"],
+        "python_packages": ["pulp", "scipy.optimize.milp", "ortools"],
+        "common_errors": [
+            ["求解时间过长", "减少整数变量或松弛求解"],
+            ["无可行解", "检查约束是否矛盾"],
+            ["内存不足", "用分支定界+启发式截断"],
+        ],
+    },
+    
+
+    {
+        "id": "simulated-annealing",
+        "name": "模拟退火 (SA)",
+        "category": "优化类",
+        "icon": "🔥",
+        "tags": ["全局优化", "随机搜索", "冶金"],
+        "summary": "模拟金属退火过程，通过概率性接受劣解来跳出局部最优，适合复杂组合优化。",
+        "applicable_scenarios": ["TSP旅行商", "背包问题", "连续函数全局优化", "调度问题", "布局优化"],
+        "math_principles": (
+            "**Metropolis准则**:\\n"
+            "- $\\Delta E < 0$（更好）: 一定接受\\n"
+            "- $\\Delta E > 0$（更差）: 以概率 $P = \\exp(-\\Delta E/T)$ 接受\\n\\n"
+            "**算法流程**:\\n"
+            "1. 初始化: 温度 $T_0$, 初始解 $s_0$\\n"
+            "2. 扰动生成新解 $s'$\\n"
+            "3. 计算 $\\Delta E = E(s') - E(s)$\\n"
+            "4. 按Metropolis准则决定是否接受\\n"
+            "5. 降温: $T \\leftarrow \\alpha T$ （$\\alpha = 0.85 \\sim 0.99$）\\n"
+            "6. 重复至满足终止条件"
+        ),
+        "code_template": (
+            "```python\\n"
+            "import numpy as np\\n\\n"
+            "def simulated_annealing(func, bounds, T0=100, alpha=0.95, max_iter=500):\\n"
+            "    x = np.random.uniform(*bounds)\\n"
+            "    f_best = func(x); x_best = x; T = T0\\n"
+            "    for _ in range(max_iter):\\n"
+            "        x_new = np.clip(x + np.random.normal(0, 0.1), *bounds)\\n"
+            "        delta = func(x_new) - func(x)\\n"
+            "        if delta < 0 or np.random.rand() < np.exp(-delta/T):\\n"
+            "            x = x_new\\n"
+            "            if func(x) > f_best: f_best = func(x); x_best = x\\n"
+            "        T *= alpha\\n"
+            "    return x_best, f_best\\n"
+            "```"
+        ),
+        "pros": ["跳出局部最优", "实现简单通用", "不要求目标可导", "理论保证收敛"],
+        "cons": ["收敛速度慢", "参数敏感(T0,α)", "结果随机", "无梯度信息利用"],
+        "python_packages": ["numpy", "scipy.optimize.dual_annealing"],
+        "common_errors": [
+            ["初始温度太低", "T0设为目标值10-100倍"],
+            ["降温太快", "α推荐0.95-0.99"],
+            ["结果不稳定", "多跑几次取最优"],
+        ],
+    },
+    
+
+    {
+        "id": "genetic-algorithm",
+        "name": "遗传算法 (GA)",
+        "category": "优化类",
+        "icon": "🧬",
+        "tags": ["进化", "全局搜索", "种群"],
+        "summary": "模拟自然选择和遗传机制，通过选择、交叉、变异操作逐代进化出最优解。",
+        "applicable_scenarios": ["TSP与路径规划", "多目标优化", "参数调优", "布局设计", "机器学习特征选择"],
+        "math_principles": (
+            "**算法框架**:\\n"
+            "1. **编码**: 解 $\\to$ 染色体（二进制/实数）\\n"
+            "2. **初始化**: 随机生成N个个体\\n"
+            "3. **选择**: 按适应度比例（轮盘赌/锦标赛）\\n"
+            "4. **交叉**: 父代交换基因（单点/两点/均匀）\\n"
+            "5. **变异**: 小概率随机改变基因\\n"
+            "6. **更新**: 新种群替代旧种群，回到3\\n\\n"
+            "**关键参数**: 种群大小(50-200)、交叉率(0.7-0.9)、变异率(0.01-0.1)"
+        ),
+        "code_template": (
+            "```python\\n"
+            "import numpy as np\\n\\n"
+            "def ga(fitness_func, bounds, pop_size=50, gens=100, mut_rate=0.05):\\n"
+            "    pop = np.random.uniform(*bounds, (pop_size, len(bounds)))\\n"
+            "    for _ in range(gens):\\n"
+            "        fits = np.array([fitness_func(ind) for ind in pop])\\n"
+            "        best_idx = np.argmax(fits); best = pop[best_idx].copy()\\n"
+            "        # 锦标赛选择 + 均匀交叉 + 变异\\n"
+            "        new_pop = []\\n"
+            "        for _ in range(pop_size//2):\\n"
+            "            i,j = np.random.randint(0,pop_size,2)\\n"
+            "            p1,p2 = pop[i] if fits[i]>fits[j] else pop[j], pop[j] if fits[i]>fits[j] else pop[i]\\n"
+            "            alpha = np.random.rand(len(bounds))\\n"
+            "            c1 = alpha*p1 + (1-alpha)*p2\\n"
+            "            c2 = (1-alpha)*p1 + alpha*p2\\n"
+            "            new_pop.extend([c1, c2])\\n"
+            "        # 精英保留\\n"
+            "        pop = np.array(new_pop)\\n"
+            "        pop[0] = best\\n"
+            "    return best, fitness_func(best)\\n"
+            "```"
+        ),
+        "pros": ["全局搜索能力强", "不依赖梯度", "适合并行计算", "可多目标优化"],
+        "cons": ["计算量大", "参数敏感", "编码影响效率", "局部搜索弱(可混合SA)"],
+        "python_packages": ["numpy", "scipy.optimize.differential_evolution", "deap"],
+        "common_errors": [
+            ["过早收敛", "增大种群或变异率"],
+            ["迟迟不收敛", "检查编码是否合理"],
+            ["适应度不变", "增大交叉率或重启"],
+        ],
+    },
+    
+
+    {
+        "id": "time-series",
+        "name": "时间序列分析 (ARIMA)",
+        "category": "统计类",
+        "icon": "📊",
+        "tags": ["预测", "平稳性", "自相关"],
+        "summary": "分析按时间顺序排列的数据点，提取趋势和季节性规律进行预测。",
+        "applicable_scenarios": ["销量预测", "经济指标预测", "交通流量预测", "股票价格分析", "气象数据预测"],
+        "math_principles": (
+            "**ARIMA(p,d,q)**:\\n"
+            "- **AR(p)**: $y_t = c + \\phi_1 y_{t-1} + \\cdots + \\phi_p y_{t-p} + \\varepsilon_t$\\n"
+            "- **I(d)**: $d$ 次差分使序列平稳\\n"
+            "- **MA(q)**: $y_t = c + \\varepsilon_t + \\theta_1 \\varepsilon_{t-1} + \\cdots + \\theta_q \\varepsilon_{t-q}$\\n\\n"
+            "**建模步骤**:\\n"
+            "1. ADF检验平稳性 $\\to$ 确定 $d$\\n"
+            "2. 看ACF/PACF图确定 $p,q$\\n"
+            "3. 拟合模型 $\\to$ 残差白噪声检验\\n"
+            "4. AIC/BIC选择最优模型 $\\to$ 预测"
+        ),
+        "code_template": (
+            "```python\\n"
+            "import numpy as np\\n"
+            "from statsmodels.tsa.arima.model import ARIMA\\n"
+            "from statsmodels.tsa.stattools import adfuller\\n"
+            "import matplotlib.pyplot as plt\\n\\n"
+            "# 模拟数据\\n"
+            "np.random.seed(42); t = np.arange(100)\\n"
+            "y = 10 + 0.3*t + np.sin(t/5)*3 + np.random.randn(100)\\n\\n"
+            "# 平稳性检验\\n"
+            "p_val = adfuller(y)[1]\\n"
+            "print(f'p = {p_val:.4f}, 需差分' if p_val>0.05 else '序列平稳')\\n\\n"
+            "# 拟合 ARIMA(2,1,2)\\n"
+            "model = ARIMA(y, order=(2,1,2)).fit()\\n"
+            "print(f'AIC = {model.aic:.1f}')\\n"
+            "pred = model.forecast(5)\\n"
+            "print(f'预测: {np.round(pred, 2)}')\\n"
+            "```"
+        ),
+        "pros": ["理论体系完善", "短期预测精度高", "可解释性强", "有完整统计检验"],
+        "cons": ["长期预测误差累积", "需较多数据(>50)", "对突变点敏感", "单序列建模"],
+        "python_packages": ["statsmodels", "prophet", "pmdarima"],
+        "common_errors": [
+            ["非平稳序列", "差分至平稳(A检p<0.05)"],
+            ["过拟合", "用AIC/BIC选择简约模型"],
+            ["残差非白噪声", "增大p,q或改用SARIMA"],
+        ],
+    },
+    
+
+    {
+        "id": "random-forest",
+        "name": "随机森林 (RF)",
+        "category": "机器学习",
+        "icon": "🌲",
+        "tags": ["集成学习", "Bagging", "特征重要性"],
+        "summary": "通过构建多棵决策树并集成投票，大幅提升预测准确性和稳定性。",
+        "applicable_scenarios": ["分类预测", "回归预测", "特征重要性排序", "缺失值填补", "异常检测"],
+        "math_principles": (
+            "**随机森林 = Bagging + 决策树 + 随机特征**\\n\\n"
+            "**构建过程**:\\n"
+            "1. 从原始数据有放回抽样(Bootstrap)构建B个子集\\n"
+            "2. 每个子集训练一棵决策树\\n"
+            "   - 每个节点随机选 $m \\ll p$ 个特征\\n"
+            "   - 学最优分裂\\n"
+            "3. 集成预测: 分类取众数, 回归取均值\\n\\n"
+            "**OOB误差**: 约1/3的袋外样本用于评估, 无需单独验证集\\n\\n"
+            "**特征重要性**: 该特征在所有树中不纯度下降总和"
+        ),
+        "code_template": (
+            "```python\\n"
+            "from sklearn.ensemble import RandomForestClassifier\\n"
+            "from sklearn.model_selection import train_test_split\\n"
+            "from sklearn.metrics import classification_report\\n"
+            "import numpy as np\\n\\n"
+            "X = np.random.randn(500, 10); y = np.random.randint(0, 2, 500)\\n"
+            "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)\\n\\n"
+            "rf = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42, n_jobs=-1)\\n"
+            "rf.fit(X_train, y_train)\\n"
+            "print(f'准确率: {rf.score(X_test, y_test):.3f}')\\n"
+            "print(f'特征重要性: {np.round(rf.feature_importances_, 3)}')\\n"
+            "```"
+        ),
+        "pros": ["无需特征缩放", "抗过拟合", "特征重要性好用", "可并行训练"],
+        "cons": ["模型体积大", "预测较慢(大数据)", "可解释性不如单树", "不平衡数据需调整"],
+        "python_packages": ["scikit-learn", "xgboost", "lightgbm"],
+        "common_errors": [
+            ["过拟合", "限制max_depth=10-20"],
+            ["类别不平衡", "设class_weight='balanced'"],
+            ["特征太多", "增大max_features"],
+        ],
+    },
+    
+
+    {
+        "id": "pca",
+        "name": "主成分分析 (PCA)",
+        "category": "统计类",
+        "icon": "📉",
+        "tags": ["降维", "特征提取", "可视化"],
+        "summary": "通过正交变换将多个相关变量转换为少数不相关的主成分，用于降维和去噪。",
+        "applicable_scenarios": ["高维数据降维", "消除多重共线性", "数据可视化(2D/3D)", "特征提取", "综合评价"],
+        "math_principles": (
+            "**核心思想**: 找到方差最大的投影方向\\n\\n"
+            "**步骤**:\\n"
+            "1. 中心化: $x_{ij} \\leftarrow x_{ij} - \\bar{x}_j$\\n"
+            "2. 协方差矩阵: $\\Sigma = \\frac{1}{n-1}X^T X$\\n"
+            "3. 特征分解: $\\Sigma v_i = \\lambda_i v_i$\\n"
+            "4. 取前k个特征向量 $W_k$\\n"
+            "5. 投影: $Z = X W_k$\\n\\n"
+            "**主成分贡献率**: $\\lambda_i / \\sum \\lambda_i$\\n"
+            "通常取累计贡献率 $\\geq 85\\%$ 的前k个主成分"
+        ),
+        "code_template": (
+            "```python\\n"
+            "from sklearn.decomposition import PCA\\n"
+            "from sklearn.preprocessing import StandardScaler\\n"
+            "import numpy as np\\n\\n"
+            "X = np.random.randn(100, 20)  # 100样本 20特征\\n"
+            "X_scaled = StandardScaler().fit_transform(X)\\n\\n"
+            "pca = PCA().fit(X_scaled)\\n"
+            "ratio = pca.explained_variance_ratio_\\n"
+            "cumsum = np.cumsum(ratio)\\n"
+            "n = np.argmax(cumsum >= 0.85) + 1\\n"
+            "print(f'保留 {n} 个主成分(累计{np.round(cumsum[n-1]*100,1)}%)')\\n\\n"
+            "Z = PCA(n_components=n).fit_transform(X_scaled)\\n"
+            "print(f'降维: {X.shape[1]}特征 -> {Z.shape[1]}主成分')\\n"
+            "```"
+        ),
+        "pros": ["消除特征相关", "有效降维降噪", "主成分独立", "有解释性(载荷)"],
+        "cons": ["主成分可解释性差", "方差大≠区分力强", "对异常值敏感", "标准化影响结果"],
+        "python_packages": ["scikit-learn", "numpy", "matplotlib"],
+        "common_errors": [
+            ["未标准化", "PCA前必须标准化(同单位除外)"],
+            ["过度降维", "保留85%以上方差"],
+            ["异常值干扰", "PCA前先处理异常值"],
+        ],
+    },
+    
+
+    {
+        "id": "logistic-regression",
+        "name": "逻辑回归",
+        "category": "统计类",
+        "icon": "📋",
+        "tags": ["分类", "概率", "线性"],
+        "summary": "广义线性模型，通过Sigmoid函数将线性输出映射到(0,1)区间进行二分类。",
+        "applicable_scenarios": ["二分类问题", "信用评分", "疾病诊断", "用户流失预测", "风险概率评估"],
+        "math_principles": (
+            "**模型形式**:\\n"
+            "$$P(y=1|x) = \\sigma(w^T x + b) = \\frac{1}{1+e^{-(w^T x + b)}}$$\\n\\n"
+            "**决策边界**: $P=0.5$ 即 $w^T x + b = 0$\\n\\n"
+            "**损失函数(交叉熵)**:\\n"
+            "$$J(w) = -\\frac{1}{m}\\sum [y\\log(\\hat{y}) + (1-y)\\log(1-\\hat{y})]$$\\n\\n"
+            "**优点**: 输出可解释为概率, 特征系数有明确含义"
+        ),
+        "code_template": (
+            "```python\\n"
+            "from sklearn.linear_model import LogisticRegression\\n"
+            "from sklearn.model_selection import train_test_split\\n"
+            "from sklearn.metrics import classification_report, roc_auc_score\\n"
+            "import numpy as np\\n\\n"
+            "X = np.random.randn(300, 5)\\n"
+            "y = (X[:,0]*0.5 + X[:,1]*0.3 + np.random.randn(300)*0.2 > 0).astype(int)\\n"
+            "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)\\n\\n"
+            "lr = LogisticRegression().fit(X_train, y_train)\\n"
+            "y_pred = lr.predict(X_test)\\n"
+            "y_prob = lr.predict_proba(X_test)[:,1]\\n"
+            "print(f'AUC = {roc_auc_score(y_test, y_prob):.4f}')\\n"
+            "print(f'系数: {np.round(lr.coef_[0], 3)}')\\n"
+            "```"
+        ),
+        "pros": ["输出为概率", "特征系数可解释", "训练快", "正则化版本成熟"],
+        "cons": ["仅线性决策边界", "对异常值敏感", "多重共线性影响", "多分类需OvR/OvO"],
+        "python_packages": ["scikit-learn", "statsmodels"],
+        "common_errors": [
+            ["线性不可分", "引入多项式特征或换SVM"],
+            ["样本不平衡", "设class_weight='balanced'"],
+            ["过拟合", "用L1/L2正则化(C调小)"],
+        ],
+    },
+    
+
+    {
+        "id": "decision-tree",
+        "name": "决策树",
+        "category": "机器学习",
+        "icon": "🌳",
+        "tags": ["可解释", "规则", "非参数"],
+        "summary": "通过树形结构学习决策规则，各节点按特征划分样本，叶节点输出预测结果。",
+        "applicable_scenarios": ["可解释性强的分类", "客户画像规则提取", "医疗诊断", "信用评估", "特征筛选"],
+        "math_principles": (
+            "**分裂准则**:\\n"
+            "- **信息增益**: $IG = H(D) - \\sum \\frac{|D_v|}{|D|} H(D_v)$\\n"
+            "- **Gini指数**: $G = 1 - \\sum p_k^2$\\n\\n"
+            "**剪枝策略**:\\n"
+            "- 预剪枝: max_depth, min_samples_split\\n"
+            "- 后剪枝: CCP(Cost Complexity Pruning)\\n\\n"
+            "**优点**: 完全可解释, 不需要特征缩放"
+        ),
+        "code_template": (
+            "```python\\n"
+            "from sklearn.tree import DecisionTreeClassifier, plot_tree\\n"
+            "from sklearn.model_selection import train_test_split\\n"
+            "import numpy as np; import matplotlib.pyplot as plt\\n\\n"
+            "X = np.random.randn(300, 4)\\n"
+            "y = (X[:,0] + X[:,1] > 0).astype(int)\\n"
+            "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)\\n\\n"
+            "tree = DecisionTreeClassifier(max_depth=3, min_samples_leaf=5, random_state=42)\\n"
+            "tree.fit(X_train, y_train)\\n"
+            "print(f'准确率: {tree.score(X_test, y_test):.3f}')\\n"
+            "print(f'特征重要性: {np.round(tree.feature_importances_, 3)}')\\n"
+            "plt.figure(figsize=(12,8)); plot_tree(tree, filled=True); plt.show()\\n"
+            "```"
+        ),
+        "pros": ["完全可解释", "不需特征缩放", "捕获非线性", "特征重要性自然"],
+        "cons": ["容易过拟合", "对数据变化敏感", "方差大(改RF)", "贪心分裂非全局最优"],
+        "python_packages": ["scikit-learn", "graphviz"],
+        "common_errors": [
+            ["过拟合", "限制max_depth/用随机森林"],
+            ["连续值分裂", "离散化或使用回归树"],
+            ["类别过多", "减少类别或换模型"],
+        ],
+    },
+    
+
+    {
+        "id": "fuzzy-evaluation",
+        "name": "模糊综合评价",
+        "category": "评价类",
+        "icon": "🌀",
+        "tags": ["模糊", "评价", "隶属度"],
+        "summary": "基于模糊数学理论，用隶属度描述评价对象的等级归属，处理不确定性和模糊性。",
+        "applicable_scenarios": ["质量评价", "风险等级评估", "环境评价", "教师/学生评价", "方案优选"],
+        "math_principles": (
+            "**步骤**:\\n"
+            "1. **因素集**: $U = \\{u_1, u_2, ..., u_m\\}$\\n"
+            "2. **评语集**: $V = \\{v_1, v_2, ..., v_n\\}$\\n"
+            "3. **隶属度矩阵**: $R = (r_{ij})_{m \\times n}$\\n"
+            "4. **权重向量**: $W = (w_1, ..., w_m)$\\n"
+            "5. **综合评价**: $B = W \\circ R$ （模糊合成运算）\\n\\n"
+            "**常用算子**:\\n"
+            "- $M(\\wedge, \\vee)$: 主因素突出型\\n"
+            "- $M(\\cdot, \\oplus)$: 加权平均型(推荐)"
+        ),
+        "code_template": (
+            "```python\\n"
+            "import numpy as np\\n\\n"
+            "def fuzzy_eval(weights, R):\\n"
+            "    # 加权平均型 M(.,oplus)\\n"
+            "    B = weights @ R\\n"
+            "    return B / B.sum() if B.sum() > 0 else B\\n\\n"
+            "weights = np.array([0.3, 0.25, 0.25, 0.2])  # 4个因素\\n"
+            "R = np.array([\\n"
+            "    [0.2, 0.5, 0.2, 0.1, 0.0],  # 因素1\\n"
+            "    [0.1, 0.3, 0.4, 0.1, 0.1],\\n"
+            "    [0.0, 0.2, 0.5, 0.2, 0.1],\\n"
+            "    [0.3, 0.4, 0.2, 0.1, 0.0],\\n"
+            "])\\n"
+            "result = fuzzy_eval(weights, R)\\n"
+            "grades = ['优','良','中','差','很差']\\n"
+            "for i, v in enumerate(result):\\n"
+            "    print(f'{grades[i]}: {v:.2%}')\\n"
+            "print(f'综合评级: {grades[np.argmax(result)]}')\\n"
+            "```"
+        ),
+        "pros": ["处理模糊性", "定性定量结合", "结果直观(隶属度)", "灵活(可选算子)"],
+        "cons": ["隶属度函数主观", "权重影响大", "评语等级有限", "模糊算子选择无标准"],
+        "python_packages": ["numpy"],
+        "common_errors": [
+            ["权重和不为1", "归一化处理"],
+            ["隶属度越界", "确保0-1之间"],
+            ["算子选择", "推荐加权平均型M(.,oplus)"],
+        ],
+    },
+    
+
+    {
+        "id": "grey-prediction",
+        "name": "灰色预测 GM(1,1)",
+        "category": "预测类",
+        "icon": "📈",
+        "tags": ["小样本", "预测", "灰色系统"],
+        "summary": "针对小样本(≥4)、贫信息的不确定系统，通过累加生成规整序列进行预测。",
+        "applicable_scenarios": ["小样本数据预测", "短期趋势预测", "经济指标预测", "缺乏历史数据的预测", "数据量不足时的替代方案"],
+        "math_principles": (
+            "**GM(1,1)**: 一阶灰色模型, 1个变量\\n\\n"
+            "**步骤**:\\n"
+            "1. **累加生成(AGO)**: $x^{(1)}(k) = \\sum_{i=1}^k x^{(0)}(i)$\\n"
+            "2. **建立微分方程**: $\\frac{dx^{(1)}}{dt} + a x^{(1)} = b$\\n"
+            "3. **参数估计**: 最小二乘求 $a,b$\\n"
+            "4. **时间响应**: $\\hat{x}^{(1)}(k+1) = (x^{(0)}(1)-b/a)e^{-ak} + b/a$\\n"
+            "5. **累减还原**: $\\hat{x}^{(0)}(k+1) = \\hat{x}^{(1)}(k+1) - \\hat{x}^{(1)}(k)$\\n\\n"
+            "**适用条件**: 任意4个以上数据点即可建模"
+        ),
+        "code_template": (
+            "```python\\n"
+            "import numpy as np\\n\\n"
+            "def gm11(data):\\n"
+            "    n = len(data)\\n"
+            "    x1 = np.cumsum(data)\\n"
+            "    B = np.array([[-0.5*(x1[i-1]+x1[i]), 1] for i in range(1,n)])\\n"
+            "    Y = data[1:].reshape(-1,1)\\n"
+            "    a,b = np.linalg.lstsq(B, Y, rcond=None)[0].flatten()\\n"
+            "    pred = [(data[0]-b/a)*np.exp(-a*k) - (data[0]-b/a)*np.exp(-a*(k-1)) for k in range(1,n+5)]\\n"
+            "    return np.array(pred)\\n\\n"
+            "data = np.array([2.874, 3.278, 3.337, 3.390, 3.679])  # 5个数据点\\n"
+            "pred = gm11(data)\\n"
+            "for i, v in enumerate(pred):\\n"
+            "    print(f'{\"拟合\" if i<5 else \"预测\"} {i+1}: {v:.4f}')\\n"
+            "```"
+        ),
+        "pros": ["仅需4个数据点", "计算简单", "短期预测精度高", "不要求典型分布"],
+        "cons": ["仅短期预测有效", "只能预测单调趋势", "波动数据效果差", "缺少统计检验"],
+        "python_packages": ["numpy", "pandas"],
+        "common_errors": [
+            ["数据波动大", "先做平滑预处理"],
+            ["预测长期", "仅建议预测3-5步"],
+            ["数据量不足4", "无法应用GM(1,1)"],
+        ],
+    },
+    
 ]
 
 

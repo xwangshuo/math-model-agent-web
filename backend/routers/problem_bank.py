@@ -1,5 +1,5 @@
 """
-赛题库 + 选题决策 + 速读模板 API
+赛题库 + 选题决策 + 速读模板 + 原题查看 API
 """
 
 from fastapi import APIRouter, HTTPException, Query
@@ -31,6 +31,12 @@ class ProblemListResponse(BaseModel):
     problems: List[ProblemItem]
     total: int
     filters: dict
+
+
+class ProblemContentResponse(BaseModel):
+    id: str
+    title: str
+    content: str
 
 
 class SelectionRequest(BaseModel):
@@ -83,10 +89,23 @@ async def list_problems(
 
 @router.get("/api/problem-bank/{problem_id}", response_model=ProblemItem)
 async def get_problem(problem_id: str):
+    """获取单个赛题元信息"""
     p = problem_bank.get_problem(problem_id)
     if not p:
         raise HTTPException(status_code=404, detail="赛题不存在")
     return ProblemItem(**p)
+
+
+@router.get("/api/problem-bank/{problem_id}/content", response_model=ProblemContentResponse)
+async def get_problem_content(problem_id: str):
+    """获取赛题原题全文"""
+    p = problem_bank.get_problem(problem_id)
+    if not p:
+        raise HTTPException(status_code=404, detail="赛题不存在")
+    content = problem_bank.get_problem_content(problem_id)
+    if not content:
+        raise HTTPException(status_code=404, detail="原题全文未收录")
+    return ProblemContentResponse(id=problem_id, title=p["title"], content=content)
 
 
 @router.post("/api/topic-selection/analyze", response_model=SelectionResponse)

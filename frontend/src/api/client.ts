@@ -135,6 +135,12 @@ export async function getProblem(id: string): Promise<any> {
   return res.json()
 }
 
+export async function getProblemContent(id: string): Promise<{ id: string; title: string; content: string }> {
+  const res = await fetch(`${API_BASE}/problem-bank/${id}/content`)
+  if (!res.ok) throw new Error('原题全文未收录')
+  return res.json()
+}
+
 // ─── 选题决策 ─────────────────────────────────────────
 
 export async function analyzeSelection(data: {

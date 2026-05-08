@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { searchProblems, getProblem, getReadingTemplate, generateReadingTemplate } from '../api/client.ts'
+import { searchProblems, getProblem, getProblemContent, getReadingTemplate, generateReadingTemplate } from '../api/client.ts'
 
 export default function ProblemBank() {
   const [problems, setProblems] = useState<any[]>([])
@@ -16,6 +16,10 @@ export default function ProblemBank() {
   const [showCustomTemplate, setShowCustomTemplate] = useState(false)
   const [customTitle, setCustomTitle] = useState('')
   const [customDesc, setCustomDesc] = useState('')
+  // 原题全文
+  const [showContent, setShowContent] = useState(false)
+  const [contentLoading, setContentLoading] = useState(false)
+  const [problemContent, setProblemContent] = useState('')
 
   useEffect(() => {
     loadProblems()
@@ -35,6 +39,7 @@ export default function ProblemBank() {
     const p = await getProblem(id)
     setSelectedProblem(p)
     setTemplate('')
+    setShowContent(false)
   }
 
   const handleTemplate = async () => {
@@ -54,11 +59,33 @@ export default function ProblemBank() {
     setShowCustomTemplate(false)
   }
 
+  const handleViewContent = async () => {
+    if (!selectedProblem) return
+    setContentLoading(true)
+    setShowContent(true)
+    try {
+      const data = await getProblemContent(selectedProblem.id)
+      setProblemContent(data.content)
+    } catch (e: any) {
+      setProblemContent('⚠️ 该赛题暂未收录原题全文')
+    }
+    setContentLoading(false)
+  }
+
+  const handlePrevProblem = () => {
+    const idx = problems.findIndex(p => p.id === selectedProblem?.id)
+    if (idx > 0) handleSelect(problems[idx - 1].id)
+  }
+  const handleNextProblem = () => {
+    const idx = problems.findIndex(p => p.id === selectedProblem?.id)
+    if (idx < problems.length - 1) handleSelect(problems[idx + 1].id)
+  }
+
   return (
     <div className="page-container">
       <div className="page-header">
         <h2>📚 历年赛题库</h2>
-        <p>CUMCM / MCM / ICM 真题检索与速读模板生成</p>
+        <p>CUMCM / MCM / ICM 真题检索（2015-2025，共 81 题）</p>
       </div>
 
       <div className="two-col-layout">
@@ -143,9 +170,28 @@ export default function ProblemBank() {
                   <span key={t} className="tag">{t}</span>
                 ))}
               </div>
-              <button className="primary-btn" onClick={handleTemplate} disabled={templateLoading}>
-                {templateLoading ? '⏳ 生成中...' : '📖 生成速读模板'}
-              </button>
+              <div className="btn-row">
+                <button className="primary-btn" onClick={handleViewContent}>
+                  📄 查看原题
+                </button>
+                <button className="secondary-btn" onClick={handleTemplate} disabled={templateLoading}>
+                  {templateLoading ? '⏳ 生成中...' : '📖 生成速读模板'}
+                </button>
+              </div>
+              {/* 上/下导航 */}
+              <div className="nav-row">
+                <button className="nav-btn" onClick={handlePrevProblem}
+                  disabled={problems.findIndex(p => p.id === selectedProblem.id) <= 0}>
+                  ◀ 上一题
+                </button>
+                <span className="nav-count">
+                  {problems.findIndex(p => p.id === selectedProblem.id) + 1} / {problems.length}
+                </span>
+                <button className="nav-btn" onClick={handleNextProblem}
+                  disabled={problems.findIndex(p => p.id === selectedProblem.id) >= problems.length - 1}>
+                  下一题 ▶
+                </button>
+              </div>
             </div>
           )}
 
@@ -179,6 +225,32 @@ export default function ProblemBank() {
           )}
         </div>
       </div>
+
+      {/* ─── 原题全文 Modal ─── */}
+      {showContent && (
+        <div className="modal-overlay" onClick={() => setShowContent(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📄 {selectedProblem?.title}</h3>
+              <span className="modal-subtitle">{selectedProblem?.competition} {selectedProblem?.year} {selectedProblem?.label}</span>
+              <button className="modal-close" onClick={() => setShowContent(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              {contentLoading ? (
+                <p className="loading-hint">⏳ 加载中...</p>
+              ) : (
+                <pre className="content-text">{problemContent}</pre>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="secondary-btn" onClick={() => {
+                navigator.clipboard.writeText(problemContent)
+              }}>📋 复制全文</button>
+              <button className="primary-btn" onClick={() => setShowContent(false)}>关闭</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

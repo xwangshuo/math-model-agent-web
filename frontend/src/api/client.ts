@@ -202,3 +202,21 @@ export async function generatePaper(title: string, abstract: string, sections: a
   })
   return res.json()
 }
+
+// ─── 模型知识库 ─────────────────────────────────────
+
+export async function listModels(params: {
+  keyword?: string; category?: string;
+}): Promise<{ models: any[]; total: number; categories: string[] }> {
+  const q = new URLSearchParams()
+  if (params.keyword) q.set('keyword', params.keyword)
+  if (params.category) q.set('category', params.category)
+  const res = await fetch(`${API_BASE}/models?${q}`)
+  return res.json()
+}
+
+export async function getModelDetail(id: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/models/${id}`)
+  if (!res.ok) throw new Error('模型不存在')
+  return res.json()
+}

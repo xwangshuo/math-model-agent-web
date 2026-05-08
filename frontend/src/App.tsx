@@ -2,6 +2,8 @@ import { useState } from 'react'
 import ChatPage from './pages/ChatPage.tsx'
 import TopicSelection from './pages/TopicSelection.tsx'
 import ProblemBank from './pages/ProblemBank.tsx'
+import ModelKnowledge from './pages/ModelKnowledge.tsx'
+import ExcellentPapers from './pages/ExcellentPapers.tsx'
 
 export default function App() {
   const [mode, setMode] = useState('chat')
@@ -10,6 +12,8 @@ export default function App() {
     switch (mode) {
       case 'selection': return <TopicSelection />
       case 'problems': return <ProblemBank />
+      case 'models': return <ModelKnowledge />
+      case 'papers': return <ExcellentPapers />
       default: return <ChatPage mode={mode} setMode={setMode} />
     }
   }
@@ -46,15 +50,27 @@ export default function App() {
           </button>
         </nav>
 
+        <div className="mode-section-label" style={{ marginTop: 20 }}>学习资源</div>
+        <nav className="mode-nav">
+          <button className={`mode-btn ${mode === 'models' ? 'active' : ''}`} onClick={() => setMode('models')}>
+            <span className="mode-icon">🧠</span>
+            <span className="mode-label">模型知识库</span>
+          </button>
+          <button className={`mode-btn ${mode === 'problems' ? 'active' : ''}`} onClick={() => setMode('problems')}>
+            <span className="mode-icon">📚</span>
+            <span className="mode-label">历年赛题库</span>
+          </button>
+          <button className={`mode-btn ${mode === 'papers' ? 'active' : ''}`} onClick={() => setMode('papers')}>
+            <span className="mode-icon">🏆</span>
+            <span className="mode-label">优秀论文库</span>
+          </button>
+        </nav>
+
         <div className="mode-section-label" style={{ marginTop: 20 }}>赛题专项</div>
         <nav className="mode-nav">
           <button className={`mode-btn ${mode === 'selection' ? 'active' : ''}`} onClick={() => setMode('selection')}>
             <span className="mode-icon">🎯</span>
             <span className="mode-label">选题决策</span>
-          </button>
-          <button className={`mode-btn ${mode === 'problems' ? 'active' : ''}`} onClick={() => setMode('problems')}>
-            <span className="mode-icon">📚</span>
-            <span className="mode-label">历年赛题库</span>
           </button>
         </nav>
 

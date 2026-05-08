@@ -1,7 +1,6 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,6 +29,8 @@ from routers.paper import router as paper_router
 from routers.system import router as system_router
 from routers.data_analysis import router as data_router
 from routers.problem_bank import router as problem_router
+from routers.model_knowledge import router as model_knowledge_router
+from routers.excellent_papers import router as papers_router
 
 app.include_router(chat_router)
 app.include_router(analysis_router)
@@ -39,11 +40,15 @@ app.include_router(paper_router)
 app.include_router(system_router)
 app.include_router(data_router)
 app.include_router(problem_router)
+app.include_router(model_knowledge_router)
+app.include_router(papers_router)
+
 
 @app.get("/api/health")
 async def health():
     import sys
     return {"status": "ok", "version": "1.0.0", "python": sys.executable}
+
 
 if __name__ == "__main__":
     import uvicorn

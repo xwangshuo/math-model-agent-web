@@ -1,0 +1,450 @@
+[
+  {
+    "id": "linear-programming",
+    "name": "线性规划",
+    "en_name": "Linear Programming",
+    "category": "优化模型",
+    "difficulty": "★★☆☆☆",
+    "summary": "在满足一组线性约束的条件下，求解线性目标函数的最大值或最小值",
+    "applicable": [
+      "资源分配问题（有限资源下最大化产出）",
+      "生产计划问题（多产品、多工序的计划安排）",
+      "运输问题（最小化运输成本）",
+      "投资组合优化（风险可控下的收益最大化）",
+      "人员排班问题"
+    ],
+    "principle": "线性规划的标准形式为：\n\nmin/max  z = c₁x₁ + c₂x₂ + ... + cₙxₙ\ns.t.     a₁₁x₁ + a₁₂x₂ + ... + a₁ₙxₙ ≤ b₁\n         a₂₁x₁ + a₂₂x₂ + ... + a₂ₙxₙ ≤ b₂\n         ...\n         x₁, x₂, ..., xₙ ≥ 0\n\n核心思想：在由约束条件定义的多面体可行域中，最优解一定出现在顶点（极点）上。\n\n求解方法：单纯形法（Simplex）—— 从可行域的一个顶点出发，沿边缘移动到使目标函数值更优的相邻顶点，直到找到最优解。\n\n对大规模问题，也可使用内点法（Interior Point Method）。",
+    "code_template": "```python\nfrom scipy.optimize import linprog\nimport numpy as np\n\n# 目标系数 (求min，若求max则取负号)\nc = [-3, -2]  # 要最大化 3x + 2y\n\n# 不等式约束 A_ub @ x <= b_ub\nA_ub = [[2, 1],   # 2x + y <= 20\n        [1, 2],   # x + 2y <= 16\n        [1, 0],   # x <= 8\n        [0, 1]]   # y <= 8\nb_ub = [20, 16, 8, 8]\n\n# 变量边界 (默认非负)\nbounds = [(0, None), (0, None)]\n\nresult = linprog(c, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method='highs')\n\nif result.success:\n    print(f\"最优解: x={result.x[0]:.2f}, y={result.x[1]:.2f}\")\n    print(f\"最优值: {-result.fun:.2f}\")  # 还原最大化符号\nelse:\n    print(\"无可行解\")\n```",
+    "pros": ["求解效率极高（多项式时间）", "有成熟求解器（scipy, pulp, gurobi）", "理论完善，结果可解释性强", "敏感性分析方便（影子价格）"],
+    "cons": ["要求目标函数和约束条件均为线性", "变量多时系数矩阵可能稀疏但规模大", "不适用于含有非线性关系的实际问题", "整数约束需用整数规划（NP-hard）"],
+    "key_tips": [
+      "求max时将目标系数取负号转成min",
+      "等式约束用A_eq和b_eq参数传递",
+      "用result.success判断是否有解",
+      "灵敏度分析：改变一个系数看最优值变化",
+      "数据量大时选method='highs'（更快）"
+    ],
+    "related_models": ["整数规划", "多目标规划", "目标规划"],
+    "references": "运筹学（清华大学出版社）"
+  },
+  {
+    "id": "integer-programming",
+    "name": "整数规划",
+    "en_name": "Integer Programming",
+    "category": "优化模型",
+    "difficulty": "★★★☆☆",
+    "summary": "在线性规划基础上要求部分或全部变量取整数值",
+    "applicable": [
+      "工厂选址问题（选或不选，0-1变量）",
+      "背包问题（物品选择）",
+      "旅行商问题（路径选择）",
+      "生产调度中的人力/设备分配",
+      "投资决策（是否投资某个项目）"
+    ],
+    "principle": "整数规划 = 线性规划 + 整数约束\n\n分支定界法（Branch & Bound）：\n1. 先求解松弛后的线性规划（忽略整数约束）\n2. 若解不是整数，选择一个非整数变量，分成两个子问题（向上取整 & 向下取整）\n3. 递归求解子问题，比较上下界剪枝\n\n0-1规划是整数规划的特例（变量只能取0或1），常用于选址、指派等问题。",
+    "code_template": "```python\nfrom scipy.optimize import milp, LinearConstraint\nimport numpy as np\n\n# min  -2x - 3y  (maximize 2x+3y)\nc = np.array([-2, -3])\n\n# 约束: 2x + 3y <= 12,  x + 2y <= 8\nA = np.array([[2, 3], [1, 2]])\nb_ub = np.array([12, 8])\nconstraints = LinearConstraint(A, -np.inf, b_ub)\n\n# 变量边界\nbounds = [(0, 4), (0, 4)]\n\n# 变量类型: 整数\nintegrality = np.array([1, 1])  # 1=整数, 0=连续\n\nresult = milp(c=c, constraints=constraints, bounds=bounds, integrality=integrality)\n\nif result.success:\n    print(f\"最优整数解: x={result.x[0]}, y={result.x[1]}\")\n    print(f\"最优值: {-result.fun}\")\n```",
+    "pros": ["建模能力强，可表示逻辑约束", "0-1变量能建模「要么做要么不做」类问题", "求解器（gurobi/cplex）对中小规模问题高效"],
+    "cons": ["NP-hard问题，大规模时求解极慢", "分支定界法在最坏情况下需要指数时间", "对求解器的依赖性强", "敏感性分析不如连续LP直观"],
+    "key_tips": [
+      "尽量用连续变量替代整数变量（如果允许）",
+      "0-1变量比一般整数变量更容易求解",
+      "设置合理的上界变量范围减少搜索空间",
+      "大规模问题考虑启发式算法或松弛求解",
+      "scipy的milp在1.9.0版本后可用"
+    ],
+    "related_models": ["线性规划", "背包问题模型", "指派问题"],
+    "references": "整数规划（孙小玲，科学出版社）"
+  },
+  {
+    "id": "ahp",
+    "name": "层次分析法",
+    "en_name": "AHP (Analytic Hierarchy Process)",
+    "category": "评价模型",
+    "difficulty": "★★☆☆☆",
+    "summary": "将复杂决策问题分解为多层次结构，通过两两比较确定各因素权重",
+    "applicable": [
+      "方案排序（选择最佳方案）",
+      "指标体系权重确定",
+      "供应商/合作伙伴评价",
+      "风险评价",
+      "资源分配优先级排序"
+    ],
+    "principle": "层次分析法的核心步骤：\n\n1. 建立层次结构：目标层 → 准则层 → 方案层\n\n2. 构造判断矩阵：对同层元素两两比较重要性\n   标度：1=同等重要, 3=稍重要, 5=明显重要, 7=强烈重要, 9=极端重要\n   2,4,6,8为中间值，倒数表示相反判断\n\n3. 计算权重：对判断矩阵求最大特征值对应的特征向量（归一化）\n\n4. 一致性检验：CI = (λ_max - n)/(n-1), CR = CI/RI\n   - CR < 0.1 时一致性可接受\n   - RI为随机一致性指标（查表）\n\n5. 层次总排序：从顶层到底层合成权重",
+    "code_template": "```python\nimport numpy as np\n\n# 判断矩阵 (准则层对目标层)\n# 例如：成本、质量、交付期、服务 四项\nA = np.array([\n    [1,   1/3, 3,   5],\n    [3,   1,   5,   7],\n    [1/3, 1/5, 1,   3],\n    [1/5, 1/7, 1/3, 1]\n])\n\ndef ahp_weight(matrix):\n    n = matrix.shape[0]\n    # 特征值法求权重\n    eigvals, eigvecs = np.linalg.eig(matrix)\n    max_idx = np.argmax(eigvals.real)\n    w = eigvecs[:, max_idx].real\n    w = w / w.sum()\n    \n    # 一致性检验\n    lambda_max = eigvals[max_idx].real\n    CI = (lambda_max - n) / (n - 1)\n    RI = {1:0, 2:0, 3:0.58, 4:0.9, 5:1.12, 6:1.24, 7:1.32, 8:1.41, 9:1.45}\n    CR = CI / RI.get(n, 1.45)\n    \n    return w, CR\n\nweights, CR = ahp_weight(A)\nprint(f\"权重: {np.round(weights, 4)}\")\nprint(f\"一致性比率 CR = {CR:.4f}\")\nif CR < 0.1:\n    print(\"✅ 一致性可接受\")\nelse:\n    print(\"❌ 需调整判断矩阵\")\n```",
+    "pros": ["不需要大量原始数据，适用面广", "结合定性与定量分析", "结果直观，易于向评委解释", "可以处理多准则、多层次复杂问题"],
+    "cons": ["主观性强，判断矩阵依赖专家经验", "指标过多时（>9）一致性难以保证", "只能处理有限个备选方案", "不能有新增/删除方案（需重新计算）"],
+    "key_tips": [
+      "准则层元素不超过9个（心理极限）",
+      "判断矩阵中 a_ij = 1/a_ji 必须满足",
+      "CR>0.1时先检查最大不一致的判断",
+      "结合熵权法确定客观权重（AHP-熵权法）",
+      "在论文中展示完整的层次结构图"
+    ],
+    "related_models": ["TOPSIS", "熵权法", "模糊综合评价"],
+    "references": "Saaty, T.L. (1980). The Analytic Hierarchy Process"
+  },
+  {
+    "id": "topsis",
+    "name": "TOPSIS法",
+    "en_name": "TOPSIS (逼近理想解排序法)",
+    "category": "评价模型",
+    "difficulty": "★★☆☆☆",
+    "summary": "通过检测评价对象与正理想解和负理想解的距离来进行排序",
+    "applicable": [
+      "多指标综合评价（学校排名、城市评价）",
+      "方案比选（工程设计、投资方案）",
+      "供应链合作伙伴选择",
+      "绩效评估",
+      "选址问题"
+    ],
+    "principle": "TOPSIS的核心思想：最优方案应该距离正理想解最近、距离负理想解最远。\n\n步骤：\n1. 构造决策矩阵 X = (x_ij)_{m×n}（m个方案，n个指标）\n2. 正向化处理（将成本型指标转为效益型）\n3. 标准化：z_ij = x_ij / sqrt(Σx_ij²)\n4. 加权：加权标准化矩阵\n5. 确定正理想解 Z⁺ = (max z_ij) 和负理想解 Z⁻ = (min z_ij)\n6. 计算各方案到Z⁺和Z⁻的欧氏距离\n7. 计算相对贴近度 C_i = D⁻/(D⁺ + D⁻)，C越大越优",
+    "code_template": "```python\nimport numpy as np\n\n# 决策矩阵 (4个方案, 5个指标)\nX = np.array([\n    [8,  7,  9,  6,  5],\n    [6,  8,  7,  9,  6],\n    [9,  6,  8,  7,  8],\n    [7,  9,  6,  8,  7]\n], dtype=float)\n\n# 指标类型: 1=效益型(越大越好), 0=成本型(越小越好)\ntypes = [1, 1, 1, 0, 1]\n\n# 正向化\nfor j in range(X.shape[1]):\n    if types[j] == 0:\n        X[:, j] = 1 / X[:, j]\n\n# 标准化\nnorm = np.sqrt((X**2).sum(axis=0))\nZ = X / norm\n\n# 正理想解 / 负理想解\nZ_plus = Z.max(axis=0)\nZ_minus = Z.min(axis=0)\n\n# 计算距离\nD_plus = np.sqrt(((Z - Z_plus)**2).sum(axis=1))\nD_minus = np.sqrt(((Z - Z_minus)**2).sum(axis=1))\n\n# 相对贴近度\nC = D_minus / (D_plus + D_minus)\n\n# 排序\nrank = np.argsort(-C)\nfor i in rank:\n    print(f\"方案 {i+1}: 贴近度 = {C[i]:.4f}\")\n```",
+    "pros": ["计算简单，不需要复杂的数学推导", "充分利用原始数据，信息损失少", "结果直观（贴近度在0-1之间）", "可处理效益型、成本型等多类指标"],
+    "cons": ["权重需要预先给定（常用AHP法配合）", "标准化方法对结果有一定影响", "正负理想解变化时排序可能改变", "不能处理指标间相关性问题"],
+    "key_tips": [
+      "反向指标一定要正向化（取倒数或用最大值减）",
+      "权重建议用熵权法确定，避免主观",
+      "贴近度0.6以上通常表示较好",
+      "配合雷达图展示各方案的对比",
+      "与AHP结合使用是国赛经典搭配"
+    ],
+    "related_models": ["AHP", "熵权法", "灰色关联分析"],
+    "references": "Hwang & Yoon (1981). Multiple Attribute Decision Making"
+  },
+  {
+    "id": "grey-relational",
+    "name": "灰色关联分析",
+    "en_name": "Grey Relational Analysis (GRA)",
+    "category": "评价模型",
+    "difficulty": "★★☆☆☆",
+    "summary": "通过序列几何形状的相似程度来判断因素之间的关联强度",
+    "applicable": [
+      "影响因素分析（什么因素对结果影响最大）",
+      "系统综合评价（与理想方案比较）",
+      "数据量少的系统分析（小样本）",
+      "模式识别",
+      "决策分析"
+    ],
+    "principle": "灰色关联分析的核心：比较各因素序列与参考序列的几何相似度。\n\n步骤：\n1. 确定参考序列（理想值或最优值构成的序列）\n2. 无量纲化处理（初值化/均值化/区间化）\n3. 计算关联系数：\n   ξ_i(k) = (min_min|x₀-x_i| + ρ·max_max|x₀-x_i|) / (|x₀-x_i| + ρ·max_max|x₀-x_i|)\n   其中ρ为分辨系数，通常取0.5\n4. 计算关联度：γ_i = (1/n) Σ ξ_i(k)\n\n关联度越大，表示该因素与参考序列关系越密切。",
+    "code_template": "```python\nimport numpy as np\n\n# 原始数据 (每行一个评价对象，每列一个指标)\nX = np.array([\n    [1.0, 2.0, 3.0, 4.0],\n    [1.2, 2.5, 2.8, 3.5],\n    [0.8, 1.8, 3.2, 4.5],\n    [1.1, 2.2, 2.9, 3.8]\n], dtype=float)\n\n# 参考序列 (取每列最大值)\nX0 = X.max(axis=0)\n\n# 无量纲化 (均值化)\nX_mean = X.mean(axis=0)\nX_norm = X / X_mean\nX0_norm = X0 / X_mean\n\n# 求差序列\ndelta = np.abs(X_norm - X0_norm)\n\n# 两级最小差和最大差\nmin_val = delta.min()\nmax_val = delta.max()\n\n# 分辨系数\nrho = 0.5\n\n# 关联系数\nzeta = (min_val + rho * max_val) / (delta + rho * max_val)\n\n# 关联度 (各指标均值)\ngamma = zeta.mean(axis=1)\n\nfor i in range(len(gamma)):\n    print(f\"对象 {i+1}: 关联度 = {gamma[i]:.4f}\")\nprint(f\"排序: {np.argsort(-gamma) + 1}\")\n```",
+    "pros": ["小样本（4个以上即可）也能用", "对数据分布没有严格要求", "计算简单，结果直观", "不需要大量历史数据"],
+    "cons": ["分辨系数ρ的选择有主观性", "关联度只反映几何相似，不反映因果关系", "多指标时容易信息重叠", "不如统计方法有严格的显著性检验"],
+    "key_tips": [
+      "分辨系数ρ通常取0.5，越大分辨率越低",
+      "数据必须做无量纲化处理",
+      "参考序列通常选各指标的最优值",
+      "可配合AHP确定指标权重（加权关联度）",
+      "在论文中展示关联度排序的条形图"
+    ],
+    "related_models": ["TOPSIS", "AHP", "主成分分析"],
+    "references": "邓聚龙 (1982). 灰色控制系统"
+  },
+  {
+    "id": "regression",
+    "name": "回归分析",
+    "en_name": "Regression Analysis",
+    "category": "统计模型",
+    "difficulty": "★★☆☆☆",
+    "summary": "研究一个或多个自变量与因变量之间的统计关系，用于预测和因素分析",
+    "applicable": [
+      "预测（房价预测、销量预测）",
+      "因果关系分析（什么因素影响结果）",
+      "变量间关系定量描述",
+      "趋势外推",
+      "数据填补（用回归预测缺失值）"
+    ],
+    "principle": "线性回归：y = β₀ + β₁x₁ + β₂x₂ + ... + βₚxₚ + ε\n\n最小二乘法（OLS）：最小化残差平方和\nβ̂ = (XᵀX)⁻¹Xᵀy\n\n关键统计量：\n- R²：模型解释的变异比例（越接近1越好）\n- 调整R²：惩罚自变量个数\n- F检验：模型整体显著性\n- t检验：单个系数显著性（p<0.05说明影响显著）\n- VIF：多重共线性检测（>10需处理）\n\n岭回归（Ridge）：加入L2正则化，处理多重共线性\nLASSO回归：加入L1正则化，可做特征选择",
+    "code_template": "```python\nimport statsmodels.api as sm\nimport pandas as pd\n\n# 数据: X为自变量矩阵, y为因变量\nX = pd.DataFrame({\n    '面积': [80, 100, 120, 90, 150],\n    '房龄': [5, 3, 8, 10, 2],\n    '楼层': [3, 15, 8, 20, 5]\n})\ny = [300, 450, 380, 350, 550]\n\n# 添加截距项\nX_const = sm.add_constant(X)\n\n# 拟合\nmodel = sm.OLS(y, X_const).fit()\n\n# 结果\nprint(model.summary())\n\n# 预测新数据\nnew = pd.DataFrame({'const': 1, '面积': [110], '房龄': [4], '楼层': [10]})\npred = model.predict(new)\nprint(f\"预测值: {pred.values[0]:.2f} 万元\")\n\n# 残差分析\nresiduals = model.resid\nprint(f\"残差均值: {residuals.mean():.4f} (应接近0)\")\nprint(f\"Durbin-Watson: {sm.stats.stattools.durbin_watson(residuals):.4f}\")\n```",
+    "pros": ["理论基础完善，结果可解释性强", "有完备的统计检验体系", "计算速度快", "多种扩展形式（岭回归、LASSO、多项式回归）"],
+    "cons": ["对异常值敏感", "要求自变量之间不能有强多重共线性", "线性回归假设较多（正态性、同方差、独立性）", "对非线性关系拟合能力有限"],
+    "key_tips": [
+      "做回归前先画散点图矩阵看关系",
+      "检查VIF，>10说明存在多重共线性",
+      "残差图检查是否满足同方差假设",
+      "分类变量需要做独热编码（get_dummies）",
+      "用R²adj而非R²来判断模型拟合优度"
+    ],
+    "related_models": ["逻辑回归", "时间序列", "主成分回归"],
+    "references": "计量经济学（伍德里奇）"
+  },
+  {
+    "id": "clustering",
+    "name": "聚类分析",
+    "en_name": "Clustering Analysis",
+    "category": "统计模型",
+    "difficulty": "★★☆☆☆",
+    "summary": "在没有标签的情况下，将数据对象按相似度分成若干个组（簇）",
+    "applicable": [
+      "客户分群（用户画像）",
+      "异常检测（远离簇的数据点）",
+      "数据降维（聚类后代表点）",
+      "图像分割",
+      "推荐系统（用户聚类后推荐）"
+    ],
+    "principle": "**K-Means聚类**：\n1. 随机选取K个初始质心\n2. 计算每个点到质心的距离，分配至最近的簇\n3. 更新每个簇的质心为簇内点的均值\n4. 重复2-3直到质心不再变化\n\nK值选择：肘部法（SSE随K变化的拐点）\n距离度量：欧氏距离最常用\n\n**DBSCAN**：基于密度，能识别任意形状簇和噪声点\n**层次聚类**：自底向上/自顶向下聚合，结果用树状图展示",
+    "code_template": "```python\nfrom sklearn.cluster import KMeans\nfrom sklearn.preprocessing import StandardScaler\nimport matplotlib.pyplot as plt\nimport numpy as np\n\n# 数据 (每行一个样本，每列一个特征)\nX = np.random.rand(100, 2)  # 100个二维点\n\n# 标准化（非常重要！）\nscaler = StandardScaler()\nX_scaled = scaler.fit_transform(X)\n\n# 肘部法确定K值\ninertias = []\nK_range = range(1, 10)\nfor k in K_range:\n    km = KMeans(n_clusters=k, random_state=42, n_init=10)\n    km.fit(X_scaled)\n    inertias.append(km.inertia_)\n\n# 选拐点处的K\nk = 3\nkm = KMeans(n_clusters=k, random_state=42, n_init=10)\nlabels = km.fit_predict(X_scaled)\n\nprint(f\"簇标签: {labels}\")\nprint(f\"质心: \\n{km.cluster_centers_}\")\nprint(f\"SSE (惯量): {km.inertia_:.2f}\")\n\n# 轮廓系数评估\nfrom sklearn.metrics import silhouette_score\nsil = silhouette_score(X_scaled, labels)\nprint(f\"轮廓系数: {sil:.3f} (>0.5较好)\")\n```",
+    "pros": ["K-Means简单高效，适合大数据", "可发现数据内在结构", "不需要标签数据", "DBSCAN能处理任意形状簇和异常点"],
+    "cons": ["K值需预先指定（肘部法不总是清晰）", "K-Means对初始质心和异常值敏感", "只能发现凸形状的簇（K-Means）", "各特征尺度不同时需标准化"],
+    "key_tips": [
+      "聚类前务必做标准化（StandardScaler）",
+      "用轮廓系数silhouette_score评估聚类效果",
+      "高维数据先降维再聚类（PCA+t-SNE可视化）",
+      "K-Means结果不稳定，多跑几次取最优",
+      "在论文中展示聚类结果的可视化散点图"
+    ],
+    "related_models": ["PCA", "DBSCAN", "层次聚类"],
+    "references": "机器学习（周志华）"
+  },
+  {
+    "id": "pca",
+    "name": "主成分分析",
+    "en_name": "PCA (Principal Component Analysis)",
+    "category": "统计模型",
+    "difficulty": "★★★☆☆",
+    "summary": "通过正交变换将一组可能相关的变量转换为少数几个线性不相关的综合变量",
+    "applicable": [
+      "高维数据降维（减少变量数量）",
+      "消除多重共线性",
+      "数据可视化（降到2-3维）",
+      "特征提取",
+      "综合评价（主成分加权合成综合得分）"
+    ],
+    "principle": "PCA的核心是找到方差最大的方向：\n\n1. 中心化数据（每个变量减去均值）\n2. 计算协方差矩阵 Σ = XᵀX/(n-1)\n3. 求特征值和特征向量\n4. 按特征值从大到小排序，取前k个特征向量组成投影矩阵\n5. 将原始数据投影到新空间：Z = XW_k\n\n主成分的方差贡献率 = 对应特征值 / 所有特征值之和\n\n通常取累计贡献率达到85%以上的前k个主成分",
+    "code_template": "```python\nfrom sklearn.decomposition import PCA\nfrom sklearn.preprocessing import StandardScaler\nimport numpy as np\n\n# 高维数据\nX = np.random.randn(50, 10)  # 50个样本, 10个特征\n\n# 标准化\nX_scaled = StandardScaler().fit_transform(X)\n\n# PCA\npca = PCA()\nZ = pca.fit_transform(X_scaled)\n\n# 方差贡献率\nprint(f\"各主成分方差贡献率: {np.round(pca.explained_variance_ratio_, 3)}\")\nprint(f\"累计贡献率: {np.round(np.cumsum(pca.explained_variance_ratio_), 3)}\")\n\n# 取前3个主成分 (累计 > 85%)\nn = np.argwhere(np.cumsum(pca.explained_variance_ratio_) >= 0.85)[0][0] + 1\nprint(f\"保留主成分数: {n}\")\n\npca = PCA(n_components=n)\nZ_reduced = pca.fit_transform(X_scaled)\nprint(f\"降维后形状: {Z_reduced.shape}\")\n\n# 载荷矩阵 (主成分与原变量的关系)\nloadings = pca.components_.T * np.sqrt(pca.explained_variance_)\nprint(f\"载荷矩阵:\\n{np.round(loadings, 3)}\")\n```",
+    "pros": ["消除变量间的相关性", "有效降低维度（减少过拟合风险）", "保留主要信息的同时降噪", "主成分之间相互独立"],
+    "cons": ["主成分的可解释性有时较差", "基于方差最大化的方向不一定是识别力最强的", "对异常值敏感", "标准化方式会影响结果"],
+    "key_tips": [
+      "PCA前必须标准化（除非各变量同单位）",
+      "累计贡献率85%作为主成分选取标准",
+      "载荷矩阵的绝对值大小反映原变量重要性",
+      "用碎石图（Scree plot）展示特征值下降趋势",
+      "综合评价时用方差贡献率作为权重"
+    ],
+    "related_models": ["因子分析", "聚类分析", "线性判别分析"],
+    "references": "Jolliffe (2002). Principal Component Analysis"
+  },
+  {
+    "id": "svm",
+    "name": "支持向量机",
+    "en_name": "SVM (Support Vector Machine)",
+    "category": "统计模型",
+    "difficulty": "★★★★☆",
+    "summary": "在特征空间中寻找一个最优超平面，使不同类别的样本间隔最大化",
+    "applicable": [
+      "二分类问题（垃圾邮件识别、疾病诊断）",
+      "多分类问题（一对一/一对多策略）",
+      "回归问题（SVR）",
+      "小样本、高维数据分类",
+      "图像识别、文本分类"
+    ],
+    "principle": "核心思想：找到使两类样本之间间隔（margin）最大的分类超平面 wx+b=0\n\n**硬间隔**：线性可分情况，最大化间隔 = 最小化 ||w||²\n约束条件：y_i(w·x_i + b) ≥ 1, ∀i\n\n**软间隔**：允许部分样本错分，引入松弛变量ξ_i和惩罚参数C\n\n**核技巧**：将数据映射到高维空间，在高维空间线性可分\n常用核函数：线性核、多项式核、RBF核（高斯核）、Sigmoid核\n\n对偶问题用拉格朗日乘子法求解，只涉及支持向量的内积计算",
+    "code_template": "```python\nfrom sklearn.svm import SVC\nfrom sklearn.model_selection import train_test_split, GridSearchCV\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.metrics import classification_report, confusion_matrix\nimport numpy as np\n\n# 数据\nX = np.random.randn(200, 5)  # 200样本, 5特征\ny = np.random.randint(0, 2, 200)  # 二分类标签\n\n# 划分\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\n# 标准化\nscaler = StandardScaler()\nX_train = scaler.fit_transform(X_train)\nX_test = scaler.transform(X_test)\n\n# 网格搜索调参\nparam_grid = {\n    'C': [0.1, 1, 10],\n    'gamma': [0.01, 0.1, 1, 'scale'],\n    'kernel': ['rbf']\n}\n\nsvm = SVC(random_state=42)\ngrid = GridSearchCV(svm, param_grid, cv=5, scoring='accuracy')\ngrid.fit(X_train, y_train)\n\nprint(f\"最佳参数: {grid.best_params_}\")\nprint(f\"最佳交叉验证分数: {grid.best_score_:.3f}\")\n\n# 评估\npred = grid.predict(X_test)\nprint(f\"\\n测试集准确率: {(pred == y_test).mean():.3f}\")\nprint(f\"\\n分类报告:\\n{classification_report(y_test, pred)}\")\n```",
+    "pros": ["小样本下表现优秀", "高维数据仍然有效", "通过核技巧可处理非线性问题", "有严格的数学理论基础（VC维理论）"],
+    "cons": ["大数据集训练速度慢", "对参数C和核函数选择敏感", "多分类问题需要扩展（不直接）", "结果不如随机森林/神经网络容易解释"],
+    "key_tips": [
+      "必须做标准化/归一化",
+      "RBF核通常效果好，配合网格搜索调C和gamma",
+      "C越大越不能容忍错误（可能过拟合）",
+      "gamma越大模型越复杂（关注单个样本）",
+      "数据量大时考虑LinearSVC（更快）"
+    ],
+    "related_models": ["随机森林", "逻辑回归", "神经网络"],
+    "references": "Vapnik (1995). The Nature of Statistical Learning Theory"
+  },
+  {
+    "id": "neural-network",
+    "name": "神经网络",
+    "en_name": "Neural Networks",
+    "category": "统计模型",
+    "difficulty": "★★★★☆",
+    "summary": "模仿生物神经元的信息处理方式，通过多层非线性变换学习数据中的复杂模式",
+    "applicable": [
+      "复杂分类/识别问题（图像、语音）",
+      "非线性回归/预测",
+      "时间序列预测（LSTM）",
+      "模式识别",
+      "数据拟合（万能逼近定理）"
+    ],
+    "principle": "基本单元：神经元接收输入x，加权求和后通过激活函数输出\ny = f(w₁x₁ + w₂x₂ + ... + wₙxₙ + b)\n\n常用激活函数：\n- ReLU：f(x) = max(0, x) —— 缓解梯度消失\n- Sigmoid：f(x) = 1/(1+e⁻ˣ) —— 输出在(0,1)区间\n- Tanh：f(x) = (eˣ - e⁻ˣ)/(eˣ + e⁻ˣ) —— 输出在(-1,1)\n\nBP（反向传播）算法：\n1. 前向传播计算输出\n2. 计算损失（交叉熵/MSE）\n3. 链式法则反向传播梯度\n4. 梯度下降更新权重\n\n网络结构：输入层 → 隐藏层（可多层） → 输出层",
+    "code_template": "```python\nfrom sklearn.neural_network import MLPClassifier\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.model_selection import train_test_split\nimport numpy as np\n\n# 数据\nX = np.random.randn(500, 10)\ny = np.random.randint(0, 3, 500)  # 3分类\n\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\n# 标准化\nscaler = StandardScaler()\nX_train = scaler.fit_transform(X_train)\nX_test = scaler.transform(X_test)\n\n# 多层感知机\nmlp = MLPClassifier(\n    hidden_layer_sizes=(64, 32),  # 两个隐藏层\n    activation='relu',\n    solver='adam',\n    max_iter=200,\n    random_state=42,\n    early_stopping=True,\n    validation_fraction=0.1\n)\n\nmlp.fit(X_train, y_train)\n\nprint(f\"训练集准确率: {mlp.score(X_train, y_train):.3f}\")\nprint(f\"测试集准确率: {mlp.score(X_test, y_test):.3f}\")\nprint(f\"迭代次数: {mlp.n_iter_}\")\n\n# 预测\npred = mlp.predict(X_test)\nproba = mlp.predict_proba(X_test)  # 概率输出\nprint(f\"前3个样本的预测概率: \\n{np.round(proba[:3], 3)}\")\n```",
+    "pros": ["可拟合任意复杂的非线性函数", "适应性强（图像、文本、数值都行）", "端到端学习（不需要特征工程）", "模型容量大，大数据下效果好"],
+    "cons": ["需要大量训练数据", "训练时间长，调参复杂", "可解释性差（黑箱模型）", "容易过拟合（需要正则化和早停）"],
+    "key_tips": [
+      "数据量小于1000时别用神经网络（考虑SVM/随机森林）",
+      "标准化是必须的！不同尺度会导致训练失败",
+      "从少量层开始（1-2个隐藏层），逐个增加",
+      "用early_stopping=True避免过拟合",
+      "竞赛中优先考虑简单模型，神经网络作为备选"
+    ],
+    "related_models": ["SVM", "随机森林", "逻辑回归"],
+    "references": "Goodfellow et al. (2016). Deep Learning"
+  },
+  {
+    "id": "differential-equation",
+    "name": "微分方程模型",
+    "en_name": "Differential Equation Models",
+    "category": "物理模型",
+    "difficulty": "★★★★☆",
+    "summary": "描述变量随时间和空间连续变化规律的数学模型，是物理建模的核心工具",
+    "applicable": [
+      "物理过程（热传导、流体力学、电磁场）",
+      "生物种群动态（Logistic增长、捕食者-猎物）",
+      "传染病模型（SIR/SIRS/SEIR）",
+      "化学反应动力学",
+      "经济增长模型"
+    ],
+    "principle": "微分方程描述函数对自变量的导数关系：\ndy/dt = f(y, t)\n\n常见类型：\n1. 一阶常微分方程：只有一个自变量，最常见的竞赛类型\n2. 偏微分方程（PDE）：涉及多个自变量的偏导数\n\n求解方法：\n- 解析解：少数简单方程有解析解\n- 数值解（竞赛常用）：\n  · 欧拉法：y_{n+1} = y_n + h·f(y_n, t_n)\n  · 龙格-库塔法（RK4）：更精确，四阶精度\n  · odeint / solve_ivp：Python内置求解器\n\n建模步骤：\n1. 根据物理定律写出微分关系\n2. 确定初始条件/边界条件\n3. 选择合适的数值求解方法\n4. 参数估计（用实际数据拟合）",
+    "code_template": "```python\nfrom scipy.integrate import solve_ivp\nimport numpy as np\nimport matplotlib.pyplot as plt\n\n# 例：SIR传染病模型\n# dS/dt = -βSI\n# dI/dt = βSI - γI\n# dR/dt = γI\n\ndef sir(t, y, beta, gamma):\n    S, I, R = y\n    dS = -beta * S * I\n    dI = beta * S * I - gamma * I\n    dR = gamma * I\n    return [dS, dI, dR]\n\n# 参数\nbeta = 0.3    # 感染率\ngamma = 0.1   # 恢复率\nN = 1000      # 总人口\n\n# 初始条件\nS0 = 999 / N\nI0 = 1 / N\nR0 = 0.0\ny0 = [S0, I0, R0]\n\n# 求解 [0, 100] 天\nt_span = (0, 100)\nt_eval = np.linspace(0, 100, 200)\n\nsol = solve_ivp(sir, t_span, y0, args=(beta, gamma),\n                t_eval=t_eval, method='RK45')\n\n# 结果\nS, I, R = sol.y * N\nprint(f\"第50天: S={S[100]:.0f}, I={I[100]:.0f}, R={R[100]:.0f}\")\nprint(f\"感染者峰值: {I.max():.0f} 天)\")\n\n# 参数敏感性：改变β看峰值变化\nfor beta_test in [0.2, 0.3, 0.4]:\n    sol2 = solve_ivp(sir, t_span, y0, args=(beta_test, gamma), t_eval=t_eval)\n    peak = sol2.y[1].max() * N\n    print(f\"β={beta_test}: I峰值={peak:.0f}\")\n```",
+    "pros": ["物理意义明确，符合自然规律", "可以描述连续变化过程", "解的可解释性强", "适合A类题（物理/几何类）"],
+    "cons": ["很多方程没有解析解", "参数估计困难", "数值求解对步长敏感", "模型验证需要真实数据"],
+    "key_tips": [
+      "竞赛中用solve_ivp（自动选择方法）",
+      "先画示意图说明物理过程",
+      "模型简化：保留核心变量，去掉次要因素",
+      "参数敏感性分析必不可少",
+      "用实际数据验证模型（哪怕只有几个数据点）"
+    ],
+    "related_models": ["差分方程", "偏微分方程", "元胞自动机"],
+    "references": "常微分方程（王高雄）"
+  },
+  {
+    "id": "monte-carlo",
+    "name": "蒙特卡洛模拟",
+    "en_name": "Monte Carlo Simulation",
+    "category": "模拟模型",
+    "difficulty": "★★★☆☆",
+    "summary": "通过大量随机抽样来模拟复杂系统的行为，用统计结果近似数学问题的解",
+    "applicable": [
+      "复杂积分计算（高维数值积分）",
+      "随机过程模拟（股价路径、排队系统）",
+      "风险分析（VaR计算、决策风险评估）",
+      "物理系统模拟（中子输运、粒子物理）",
+      "优化问题（模拟退火、遗传算法）"
+    ],
+    "principle": "核心思想：利用大数定律，当抽样次数足够多时，样本均值收敛到期望值。\n\n**蒲丰投针求π**：\n随机在正方形内撒点，落入内切圆的点数比例 = π/4\n\n**一般步骤**：\n1. 建立概率模型，确定随机变量\n2. 生成大量随机数（均匀分布/正态分布等）\n3. 模拟计算每次抽样的结果\n4. 统计结果（均值、方差、分位数）\n5. 误差分析：误差 ∝ 1/√N（N为模拟次数）\n\n**方差缩减技术**：重要性抽样、对偶变量法、分层抽样——减少达到同样精度所需的模拟次数",
+    "code_template": "```python\nimport numpy as np\n\n# 例1：蒲丰投针求π\nN = 1000000\nx = np.random.rand(N)\ny = np.random.rand(N)\ninside = (x**2 + y**2) <= 1\npi_est = 4 * inside.sum() / N\nprint(f\"蒙特卡洛估计π = {pi_est:.6f} (误差: {abs(pi_est - np.pi):.6f})\")\n\n# 例2：库存系统模拟\ndef simulate_inventory(days=365, order_point=50, order_qty=200):\n    \"\"\"模拟库存系统\"\"\"\n    inventory = 100  # 初始库存\n    total_cost = 0\n    \n    for day in range(days):\n        # 随机需求\n        demand = max(0, int(np.random.normal(30, 10)))\n        \n        # 满足需求\n        sold = min(inventory, demand)\n        inventory -= sold\n        lost = demand - sold\n        total_cost += lost * 10  # 缺货损失\n        \n        # 检查是否需要订货\n        if inventory <= order_point:\n            # 订货（2天后到货）\n            pass  # 简化\n            total_cost += 5  # 订货费\n            # 实际到货: 2天后\n    \n    return total_cost\n\n# 多次模拟\ncosts = [simulate_inventory() for _ in range(1000)]\nprint(f\"平均成本: {np.mean(costs):.0f} ± {np.std(costs):.0f}\")\nprint(f\"95%置信区间: [{np.percentile(costs, 2.5):.0f}, {np.percentile(costs, 97.5):.0f}]\")\n```",
+    "pros": ["适用于任何复杂系统（只要会抽样）", "实现简单，不需要复杂数学推导", "可处理高维问题", "误差分析直观（标准误）"],
+    "cons": ["计算量大（精度提升10倍需100倍样本）", "收敛速度慢（O(1/√N)）", "结果具有随机性", "模型假设的准确度影响结果可靠性"],
+    "key_tips": [
+      "N从1000开始，逐步增加到10万/100万",
+      "设置np.random.seed(42)确保可复现",
+      "用置信区间而不是单一点估计",
+      "重要性抽样可大幅降低方差",
+      "在论文中说明模拟次数和随机种子"
+    ],
+    "related_models": ["模拟退火", "遗传算法", "随机过程"],
+    "references": "蒙特卡洛方法（徐钟济）"
+  },
+  {
+    "id": "time-series",
+    "name": "时间序列分析",
+    "en_name": "Time Series Analysis (ARIMA)",
+    "category": "统计模型",
+    "difficulty": "★★★☆☆",
+    "summary": "分析按时间顺序排列的数据点，提取规律并进行预测",
+    "applicable": [
+      "经济预测（GDP、股票价格、汇率）",
+      "销量预测（零售、电商）",
+      "交通流量预测",
+      "气象数据预测（温度、降雨量）",
+      "信号处理（EEG、语音）"
+    ],
+    "principle": "ARIMA(p,d,q)模型三部分：\n\n1. **AR（自回归）**：用过去p个时刻的观测值预测当前值\n   y_t = c + φ₁y_{t-1} + ... + φₚy_{t-p} + ε_t\n\n2. **I（差分）**：d次差分使非平稳序列变平稳\n   y'_t = y_t - y_{t-1}\n\n3. **MA（移动平均）**：用过去q个时刻的预测误差\n   y_t = c + ε_t + θ₁ε_{t-1} + ... + θ_qε_{t-q}\n\n**建模步骤**：\n1. 平稳性检验（ADF检验）\n2. 确定差分阶数d\n3. 通过ACF和PACF图确定p和q\n4. 模型拟合 + 残差检验（白噪声）\n5. 模型评价（AIC/BIC）\n6. 预测\n\n**季节性ARIMA（SARIMA）**：增加季节性成分",
+    "code_template": "```python\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nfrom statsmodels.tsa.stattools import adfuller\nfrom statsmodels.graphics.tsaplots import plot_acf, plot_pacf\nfrom statsmodels.tsa.arima.model import ARIMA\n\n# 生成模拟序列\nnp.random.seed(42)\nt = np.arange(100)\ny = 10 + 0.5 * t + np.sin(t/5) * 5 + np.random.randn(100) * 2\n\n# 1. 平稳性检验\nresult = adfuller(y)\nprint(f\"ADF统计量: {result[0]:.3f}\")\nprint(f\"p值: {result[1]:.4f}\")\nprint(f\"序列{'平稳' if result[1] < 0.05 else '不平稳，需差分'}\")\n\n# 2. 一阶差分\ny_diff = np.diff(y, n=1)\n\n# 3. 拟合ARIMA(2,1,2)\nmodel = ARIMA(y, order=(2, 1, 2))\nresult = model.fit()\n\nprint(f\"\\nAIC: {result.aic:.2f}\")\nprint(f\"BIC: {result.bic:.2f}\")\nprint(result.summary())\n\n# 4. 预测未来10期\nforecast = result.forecast(steps=10)\nprint(f\"\\n预测值: {np.round(forecast.values, 2)}\")\n\n# 5. 模型诊断\nresid = result.resid\nprint(f\"\\n残差均值: {resid.mean():.4f} (应接近0)\")\nprint(f\"残差方差: {resid.var():.4f}\")\n```",
+    "pros": ["理论基础完善，统计检验体系完备", "可解释性强（趋势、季节、周期分解）", "短期预测精度高", "有多种扩展（SARIMA、VAR、GARCH）"],
+    "cons": ["长期预测误差累积", "要求数据量较大（至少50个观测）", "对趋势变化和突变点敏感", "无法处理多个序列的相互关系（需用VAR）"],
+    "key_tips": [
+      "建模前先画时序图观察趋势和季节性",
+      "p,q不超过数据长度的1/10",
+      "赤池信息准则AIC越小模型越好",
+      "残差必须是白噪声（Ljung-Box检验）",
+      "竞赛中如果数据量少，考虑灰色预测GM(1,1)"
+    ],
+    "related_models": ["回归分析", "灰色预测GM(1,1)", "LSTM"],
+    "references": "时间序列分析（博克斯-詹金斯）"
+  },
+  {
+    "id": "random-forest",
+    "name": "随机森林",
+    "en_name": "Random Forest",
+    "category": "统计模型",
+    "difficulty": "★★★☆☆",
+    "summary": "通过构建多棵决策树并集成它们的预测结果，大幅提升准确性和稳定性",
+    "applicable": [
+      "分类问题（信贷违约预测、疾病诊断）",
+      "回归问题（房价预测、销量预测）",
+      "特征重要性排序（哪些变量最重要）",
+      "缺失值填补（利用特征间关系）",
+      "异常检测（孤立森林）"
+    ],
+    "principle": "随机森林 = Bagging + 决策树 + 随机特征选择\n\n**构建过程**：\n1. 从原始数据集中有放回地抽样（Bootstrap）构建B个训练子集\n2. 对每个子集训练一棵决策树\n   - 在每个分裂节点，随机选择m个特征（m << 总特征数）\n   - 选择最优分裂特征和阈值\n3. 集成预测：\n   - 分类：多数投票\n   - 回归：取平均\n\n**袋外误差（OOB Error）**：未被抽到的样本（约1/3）用于评估模型，无需额外验证集\n\n**特征重要性**：某个特征在所有树中分裂时带来的不纯度下降总和",
+    "code_template": "```python\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.model_selection import train_test_split, cross_val_score\nfrom sklearn.metrics import classification_report\nimport numpy as np\nimport pandas as pd\n\n# 数据\nX = np.random.randn(500, 10)\ny = np.random.randint(0, 2, 500)\n\n# 划分\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\n# 随机森林\nrf = RandomForestClassifier(\n    n_estimators=200,       # 树的数量\n    max_depth=10,            # 最大深度 (防止过拟合)\n    min_samples_split=5,    # 内部节点最小样本数\n    min_samples_leaf=2,     # 叶节点最小样本数\n    random_state=42,\n    n_jobs=-1               # 并行计算\n)\n\nrf.fit(X_train, y_train)\n\n# 评估\nprint(f\"训练集: {rf.score(X_train, y_train):.3f}\")\nprint(f\"测试集: {rf.score(X_test, y_test):.3f}\")\n\n# 交叉验证\ncv_scores = cross_val_score(rf, X_train, y_train, cv=5)\nprint(f\"交叉验证: {cv_scores.mean():.3f} ± {cv_scores.std():.3f}\")\n\n# 特征重要性\nfeat_imp = pd.DataFrame({\n    'feature': [f'X{i}' for i in range(10)],\n    'importance': rf.feature_importances_\n}).sort_values('importance', ascending=False)\nprint(f\"\\n特征重要性:\\n{feat_imp.head()}\")\n```",
+    "pros": ["不需要特征缩放（标准化）", "对缺失值和异常值鲁棒", "特征重要性排序非常有用", "不容易过拟合（集成效果）", "训练可并行化"],
+    "cons": ["模型体积大（数百棵树）", "预测速度较慢（大数据集）", "可解释性不如单棵决策树", "对极端不平衡数据需调整class_weight"],
+    "key_tips": [
+      "n_estimators从100开始，逐步增加看效果",
+      "max_depth限制在10-20防止过拟合",
+      "oob_score=True可查看袋外评分",
+      "特征重要性图是论文加分项",
+      "数据不平衡时设class_weight='balanced'"
+    ],
+    "related_models": ["决策树", "梯度提升树GBDT", "XGBoost"],
+    "references": "Breiman (2001). Random Forests"
+  },
+  {
+    "id": "simulated-annealing",
+    "name": "模拟退火",
+    "en_name": "Simulated Annealing",
+    "category": "优化模型",
+    "difficulty": "★★★☆☆",
+    "summary": "模拟金属退火过程中粒子从高温到低温的能量变化，用于求解复杂优化问题",
+    "applicable": [
+      "组合优化（TSP旅行商、背包问题）",
+      "连续优化（多峰函数全局最优）",
+      "工程调度（作业排序、路径规划）",
+      "图论问题（图分割、着色）",
+      "参数调优（模型超参数搜索）"
+    ],
+    "principle": "模拟退火通过引入随机性来跳出局部最优：\n\n**Metropolis准则**：\n- 如果新解更好（ΔE < 0），一定接受\n- 如果新解更差（ΔE > 0），以概率 P = exp(-ΔE/T) 接受\n  其中T是当前温度\n\n**算法步骤**：\n1. 初始化温度T₀、初始解s₀\n2. 对当前解施加扰动，生成新解s'\n3. 计算能量差ΔE = E(s') - E(s)\n4. 以Metropolis准则决定是否接受\n5. 降温：T ← α·T（α通常取0.85-0.99）\n6. 重复2-5直到满足终止条件\n\n**关键参数**：\n- 初始温度T₀：要足够高（接受概率≈1）\n- 降温速率α：越接近1搜索越精细\n- 每温度迭代次数L：平衡搜索广度和深度",
+    "code_template": "```python\nimport numpy as np\n\n# 例：求解函数 f(x) = x*sin(10πx) + 1 在[0,1]上的全局最大值\ndef f(x):\n    return x * np.sin(10 * np.pi * x) + 1\n\n# 模拟退火\ndef simulated_annealing(f, bounds, T0=100, alpha=0.95, L=100, max_iter=500):\n    x = np.random.uniform(*bounds)\n    f_best = f(x)\n    x_best = x\n    T = T0\n    \n    for it in range(max_iter):\n        # 产生新解 (在当前解附近扰动)\n        x_new = x + np.random.normal(0, 0.1)\n        x_new = np.clip(x_new, *bounds)\n        \n        # 能量差\n        delta = -(f(x_new) - f(x))  # 最大化，取负号\n        \n        # Metropolis准则\n        if delta < 0 or np.random.rand() < np.exp(-delta / T):\n            x = x_new\n            if f(x) > f_best:\n                f_best = f(x)\n                x_best = x\n        \n        # 降温\n        T *= alpha\n        \n        # 结果跟踪\n        if it % 100 == 0:\n            print(f\"迭代 {it}: x={x:.4f}, f={f(x):.4f}, T={T:.2f}\")\n    \n    return x_best, f_best\n\nbest_x, best_f = simulated_annealing(f, (0, 1))\nprint(f\"\\n最优解: x={best_x:.4f}, f_max={best_f:.4f}\")\n```",
+    "pros": ["能跳出局部最优（找到全局最优）", "实现简单，各问题通用", "没有对目标函数的苛刻要求（不需要可导）", "理论保证按概率收敛到全局最优"],
+    "cons": ["收敛速度慢（需要大量迭代）", "参数设置敏感（T₀, α, L）", "每次运行结果可能不同", "没有利用梯度信息（比梯度下降慢）"],
+    "key_tips": [
+      "初始温度T₀设为目标函数值的10-100倍",
+      "降温速率α推荐0.90-0.99（越精细越慢）",
+      "多跑几次取最优结果",
+      "在论文中展示收敛曲线",
+      "可结合局部搜索提升效率"
+    ],
+    "related_models": ["遗传算法", "粒子群优化", "蚁群算法"],
+    "references": "Kirkpatrick et al. (1983). Optimization by Simulated Annealing"
+  },
+  {
+    "id": "genetic-algorithm",
+    "name": "遗传算法",
+    "en_name": "Genetic Algorithm (GA)",
+    "category": "优化模型",
+    "difficulty": "★★★☆☆",
+    "summary": "模拟自然选择和遗传机制，通过选择、交叉、变异等操作逐代进化出最优解",
+    "applicable": [
+      "组合优化（TSP、调度、布局）",
+      "多目标优化（帕累托前沿）",
+      "机器学习参数优化",
+      "工程设计优化（结构、参数）",
+      "路径规划"
+    ],
+    "principle": "遗传算法模拟生物进化过程：\n\n**编码**：将问题的解表示为染色体（通常是二进制串或实数数组）\n\n**选择**：适应度越高的个体被选中的概率越大（轮盘赌/锦标赛选择）\n\n**交叉**：两个父代染色体交换部分基因产生子代\n- 单点交叉：随机选一个位置交换\n- 两点交叉：选两个位置交换中间片段\n- 均匀交叉：每个位置以概率p交换\n\n**变异**：以较小的概率随机改变染色体上的基因（保持种群多样性）\n\n**算法框架**：\n1. 初始化种群 → 2. 评估适应度 → 3. 选择 → 4. 交叉 → 5. 变异 → 6. 新种群 → 回到2",
+    "code_template": "```python\nimport numpy as np\n\n# 函数：求 f(x) = x*sin(10πx)+2 的最大值\ndef fitness(x):\n    return x * np.sin(10 * np.pi * x) + 2\n\ndef ga(bounds, pop_size=50, n_generations=100, mutation_rate=0.05):\n    n = 1  # 变量个数\n    # 初始化种群\n    pop = np.random.rand(pop_size, n)\n    # 缩放到边界\n    pop = pop * (bounds[1] - bounds[0]) + bounds[0]\n    \n    best_fit = 0\n    best_sol = None\n    \n    for gen in range(n_generations):\n        # 计算适应度\n        fits = np.array([fitness(x[0]) for x in pop])\n        \n        # 记录最优\n        idx = np.argmax(fits)\n        if fits[idx] > best_fit:\n            best_fit = fits[idx]\n            best_sol = pop[idx].copy()\n        \n        # 选择（锦标赛）\n        new_pop = []\n        for _ in range(pop_size):\n            i, j = np.random.randint(0, pop_size, 2)\n            winner = pop[i] if fits[i] > fits[j] else pop[j]\n            new_pop.append(winner.copy())\n        \n        # 交叉（单点）\n        for i in range(0, pop_size - 1, 2):\n            if np.random.rand() < 0.8:  # 交叉概率\n                alpha = np.random.rand()\n                new_pop[i], new_pop[i+1] = (\n                    alpha * new_pop[i] + (1-alpha) * new_pop[i+1],\n                    (1-alpha) * new_pop[i] + alpha * new_pop[i+1]\n                )\n        \n        # 变异\n        for i in range(pop_size):\n            if np.random.rand() < mutation_rate:\n                new_pop[i] += np.random.randn() * 0.1\n                new_pop[i] = np.clip(new_pop[i], *bounds)\n        \n        pop = np.array(new_pop)\n        \n        if gen % 20 == 0:\n            print(f\"第{gen}代: 最优适应度={best_fit:.4f}\")\n    \n    return best_sol[0], best_fit\n\nsol, val = ga((0, 1))\nprint(f\"\\n最优解: x={sol:.4f}, f_max={val:.4f}\")\n```",
+    "pros": ["不依赖梯度信息，适用范围广", "能有效避免局部最优", "适合并行计算（每代种群并行评估）", "可同时处理多个目标"],
+    "cons": ["参数敏感（种群大小、交叉率、变异率）", "计算量大（每代需评估所有个体）", "编码方式影响求解效率", "局部搜索能力较弱（与模拟退火互补）"],
+    "key_tips": [
+      "种群大小 50-200 之间（太大太慢，太小易早熟）",
+      "交叉概率 0.7-0.9，变异概率 0.01-0.1",
+      "精英保留策略（每代保留最优个体防止退化）",
+      "竞赛中建议结合局部搜索（爬山法）",
+      "展示进化曲线（最佳-平均适应度 vs 代数）"
+    ],
+    "related_models": ["模拟退火", "粒子群优化", "蚁群算法"],
+    "references": "Goldberg (1989). Genetic Algorithms in Search, Optimization and Machine Learning"
+  }
+]

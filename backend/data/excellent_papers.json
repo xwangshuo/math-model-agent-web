@@ -1,0 +1,321 @@
+[
+  {
+    "id": "cumcm-2023-a-01",
+    "year": 2023,
+    "competition": "CUMCM",
+    "problem": "定日镜场的优化设计",
+    "award": "全国一等奖",
+    "team": "电子科技大学",
+    "abstract": "本文针对塔式太阳能光热发电站中定日镜场的优化设计问题，建立了基于光学效率的多目标优化模型。首先，基于太阳几何学和光学原理，建立了定日镜光学效率的数学模型，分析了不同时刻、不同位置定日镜的阴影遮挡效率、余弦效率等。其次，以年发电量最大和单位发电成本最低为目标，建立了定日镜场布局的优化模型，采用遗传算法进行求解。最后，对最优布局方案进行了灵敏度分析和经济性评估。",
+    "highlights": [
+      "建立了完整的光学效率计算模型（余弦效率、阴影遮挡效率、截断效率、大气透射率）",
+      "采用遗传算法 + 局部搜索的混合策略求解大规模镜场布局优化问题",
+      "对定日镜间距、高度、方位角等多维变量进行联合优化",
+      "进行了全面的灵敏度分析（土地成本、镜面反射率等参数变化）"
+    ],
+    "structure": {
+      "organization": "摘要 → 问题重述 → 问题分析 → 模型假设 → 符号说明 → 光学效率模型 → 镜场布局优化模型 → 算法设计 → 结果分析 → 灵敏度分析 → 模型评价 → 参考文献",
+      "writing_style": "逻辑清晰，按问题顺序逐步推进，每个问题独立成节，内部再分子问题。摘要以「针对…建立了…模型，采用…算法求解」的标准学术句式开头。",
+      "model_connection": "三个问题逐步递进：问题一的光学效率计算是问题二优化的基础，问题二的优化结果是问题三敏感性分析的输入。",
+      "key_figures": [
+        "定日镜光学效率随时刻和季节变化的热力图",
+        "镜场布局的三维俯视图（带色彩编码的等高线）",
+        "遗传算法收敛曲线（最优值和平均值随代数变化）",
+        "各参数灵敏度雷达图"
+      ]
+    },
+    "innovation": [
+      "将阴影遮挡效率的精确计算与优化模型无缝衔接",
+      "设计了多层级编码的遗传算法（镜群-排-个体三层结构）",
+      "引入Pareto前沿分析年发电量与成本之间的权衡关系"
+    ],
+    "chart_quality": "★★★★☆ — 图表数量充足（约25张），色彩搭配统一，但部分热力图的坐标轴标注偏小",
+    "code_quality": "使用MATLAB编写，遗传算法部分包含详细的注释，参数配置集中管理",
+    "scoring_analysis": {
+      "modeling": "9/10 — 光学模型扎实，优化模型合理，公式推导严谨",
+      "solution": "8/10 — 遗传算法求解，收敛性良好，但未与其他算法对比",
+      "paper": "8/10 — 结构完整，图表规范，但摘要稍显冗长",
+      "innovation": "8/10 — 镜场布局的多变量耦合优化有一定新意"
+    },
+    "key_lessons": [
+      "物理建模类题目（A题）的核心是建立准确的物理公式，这是评分的基础",
+      "优化问题展示收敛曲线 = 告诉评委我的算法可靠",
+      "灵敏度分析是A题的必选项，不能省",
+      "图表统一配色方案（蓝-绿渐变）提升论文整体感"
+    ]
+  },
+  {
+    "id": "cumcm-2023-c-01",
+    "year": 2023,
+    "competition": "CUMCM",
+    "problem": "蔬菜类商品的自动定价与补货决策",
+    "award": "全国一等奖",
+    "team": "武汉大学",
+    "abstract": "本文针对生鲜商超蔬菜类商品的自动定价与补货问题，构建了基于时间序列预测和动态优化相结合的决策模型。首先，对历史销售数据进行清洗和探索性分析，提取了不同品类蔬菜的销售规律和价格弹性特征。其次，采用SARIMA-LSTM混合模型预测各品类蔬菜的日需求量。在此基础上，建立了以总利润最大化为目标的动态定价与补货优化模型，并设计了差分进化算法进行求解。最后，通过实际数据验证了模型的有效性。",
+    "highlights": [
+      "数据预处理精细：异常值检测、节假日效应修正、缺失值填补",
+      "SARIMA提取线性趋势 + LSTM捕捉非线性模式 = 混合预测模型",
+      "动态定价策略：根据库存和预期需求实时调整价格",
+      "差分进化算法求解非线性约束优化问题"
+    ],
+    "structure": {
+      "organization": "摘要 → 问题重述 → 数据预处理 → 探索性数据分析 → 需求预测模型 → 动态定价与补货优化 → 结果分析 → 模型评价 → 附录",
+      "writing_style": "数据导向型写作，大量使用图表说明数据特征。每个步骤都以「为什么要这么做」开头，逻辑性强。",
+      "model_connection": "数据清洗 → EDA发现规律 → 预测模型提供输入 → 优化模型产出决策 → 仿真验证闭环。",
+      "key_figures": [
+        "各品类蔬菜销售量时序图（含趋势线）",
+        "价格-需求量的散点图和回归曲线",
+        "SARIMA-LSTM预测结果与实际值的对比图",
+        "优化前后的利润对比柱状图",
+        "不同场景下最优定价热力图"
+      ]
+    },
+    "innovation": [
+      "SARIMA-LSTM混合模型兼顾线性和非线性特征",
+      "将保质期约束嵌入优化模型中",
+      "设计了「价格-折扣」两阶段动态定价策略"
+    ],
+    "chart_quality": "★★★★★ — 图表精美，配色统一，时间序列图清晰标注了关键事件点",
+    "code_quality": "使用Python( pandas + prophet + scipy )，代码可读性强，数据流清晰",
+    "scoring_analysis": {
+      "modeling": "8/10 — 预测模型和优化模型结合紧密，但缺少理论创新",
+      "solution": "9/10 — 数据处理扎实，模型结果与实际吻合好",
+      "paper": "9/10 — 数据分析详尽，图表解说到位",
+      "innovation": "7/10 — 方法组合有新意，但单个方法均为现有方法"
+    },
+    "key_lessons": [
+      "C题（数据题）高分秘诀：精细的数据处理 + 漂亮的图表",
+      "混合模型 > 单一模型，向评委展示你懂多种方法",
+      "数据清洗过程写详细的说明，这是评分的「隐藏分」",
+      "每个决策都要有数据支撑，不要凭感觉"
+    ]
+  },
+  {
+    "id": "cumcm-2022-c-01",
+    "year": 2022,
+    "competition": "CUMCM",
+    "problem": "古代玻璃制品的成分分析与鉴别",
+    "award": "全国一等奖",
+    "team": "浙江大学",
+    "abstract": "本文针对古代玻璃制品的成分分析与鉴别问题，综合运用统计分类和机器学习方法建立了多阶段分类模型。首先，对玻璃成分数据进行统计分析，揭示了高钾玻璃和铅钡玻璃在风化前后的成分变化规律。其次，采用主成分分析（PCA）降维后，构建了KNN-SVM集成分类器对不同玻璃类型进行鉴别。最后，利用敏感性分析评估了各成分对分类结果的贡献度。",
+    "highlights": [
+      "数据探索深入：相关性矩阵、成分分布、风化前后对比",
+      "PCA降维后集成KNN和SVM，利用两种算法的互补性",
+      "对分类器进行了详细的性能评估（混淆矩阵、ROC曲线）",
+      "给出了每个成分对分类贡献的定量分析"
+    ],
+    "structure": {
+      "organization": "摘要 → 问题重述 → 数据探索 → 风化规律分析 → 分类模型构建 → 模型评估 → 子类分析 → 结论",
+      "writing_style": "由浅入深型：先从统计描述入手，逐步过渡到机器学习分类，适合数据挖掘类题目。",
+      "model_connection": "统计描述发现规律 → PCA降维消除冗余 → 集成分类器准确鉴别 → 敏感性分析解释结果，形成完整的数据挖掘流程。",
+      "key_figures": [
+        "成分相关性热力图（上三角矩阵形式）",
+        "PCA主成分贡献率的碎石图",
+        "不同分类器性能对比的柱状图",
+        "混淆矩阵（热力图形式）",
+        "各成分对分类的贡献度排序图"
+      ]
+    },
+    "innovation": [
+      "将风化前后的成分变化规律纳入分类特征",
+      "KNN-SVM集成投票机制提升分类准确率",
+      "利用成分比率（如PbO/SiO₂）而非绝对值进行分类"
+    ],
+    "chart_quality": "★★★★☆ — 统计图表规范美观，混淆矩阵尤其出色，但部分散点图标签重叠",
+    "code_quality": "使用Python(sklearn + pandas + matplotlib)，分类流程Pipeline化",
+    "scoring_analysis": {
+      "modeling": "7/10 — 方法标准，无重大理论创新",
+      "solution": "9/10 — 分类准确率超过95%，结果可靠",
+      "paper": "9/10 — 数据分析深入，论文讲述了一个完整的数据故事",
+      "innovation": "7/10 — 集成方法在竞赛题目中有新意"
+    },
+    "key_lessons": [
+      "分类问题：展示混淆矩阵比只给准确率更有说服力",
+      "PCA降维不仅解决了共线性问题，还能用载荷矩阵解释每个成分的含义",
+      "多种分类器对比 + 选择最优 = 给评委看你做了充分的尝试",
+      "数据可视化是C题的制胜法宝"
+    ]
+  },
+  {
+    "id": "cumcm-2022-a-01",
+    "year": 2022,
+    "competition": "CUMCM",
+    "problem": "波浪能最大输出功率设计",
+    "award": "全国一等奖",
+    "team": "华中科技大学",
+    "abstract": "本文针对波浪能发电装置的最大输出功率设计问题，基于流体力学和振动理论建立了浮子-振子系统的动力学模型。首先，分析了浮子在不同波浪条件下的受力情况，建立了垂荡运动的微分方程。其次，引入复数刚度法求解系统的稳态响应，得到了装置输出功率与波浪参数、结构参数的解析关系。最后，以输出功率最大化为目标，优化了浮子直径、振子质量和弹簧刚度等参数。",
+    "highlights": [
+      "动力学建模严谨：将浮子-振子系统简化为二自由度受迫振动体系",
+      "复数刚度法巧妙处理阻尼和弹簧的复合作用",
+      "推导了输出功率的解析表达式（含PTO阻尼比、频率比等无量纲参数）",
+      "参数优化考虑了实际工程约束（几何尺寸限制、材料强度）"
+    ],
+    "structure": {
+      "organization": "摘要 → 问题背景 → 系统建模 → 动力学分析 → 功率计算 → 参数优化 → 数值仿真 → 结论",
+      "writing_style": "经典物理建模风格：受力分析 → 运动方程 → 求解 → 分析验证。每个公式都配图说明物理意义。",
+      "model_connection": "物理机理→微分方程→解析解→参数优化，逻辑链清晰严谨。",
+      "key_figures": [
+        "浮子-振子系统受力示意图（带标注）",
+        "输出功率随PTO阻尼变化的曲线",
+        "输出功率随波浪频率变化的曲线（共振峰）",
+        "优化前后功率对比图",
+        "不同参数组合下的功率等高线图"
+      ]
+    },
+    "innovation": [
+      "将波浪激励简化为简谐激励，利用二阶系统频率响应特性分析",
+      "推导了无量纲化的功率表达式，揭示功率与参数的普适关系",
+      "发现了PTO最优阻尼比与系统固有频率的关系"
+    ],
+    "chart_quality": "★★★★★ — 物理示意图专业，频率响应曲线标注清晰，模型的假设在图中都有标记",
+    "code_quality": "MATLAB + Simulink联合仿真，ODE求解器选用了ode45",
+    "scoring_analysis": {
+      "modeling": "10/10 — 建模过程完整，从物理定律到数学方程严谨规范",
+      "solution": "9/10 — 解析解和数值解互相验证",
+      "paper": "9/10 — 物理背景交代清楚，模型假设合理",
+      "innovation": "8/10 — 无量纲化分析是亮点"
+    },
+    "key_lessons": [
+      "A题（物理题）的核心竞争力：公式推导的完整性和严谨性",
+      "物理示意图必画，标注受力方向、坐标系统",
+      "解析解 + 数值解双保险，互相验证",
+      "无量纲化 = 揭示问题的本质规律，评委非常认可"
+    ]
+  },
+  {
+    "id": "cumcm-2021-a-01",
+    "year": 2021,
+    "competition": "CUMCM",
+    "problem": "FAST反射面板的调节",
+    "award": "全国一等奖",
+    "team": "国防科技大学",
+    "abstract": "本文针对FAST射电望远镜反射面板的主动调节问题，建立了基于球面-抛物面变换的优化模型。首先，根据FAST的工作原理，建立了理想抛物面与球壳基准面之间的映射关系。其次，以电磁波接收效率最大化为目标，优化了促动器的伸缩量，使反射面逼近理想抛物面。最后，分析了不同照射角下的最优面板调节策略，并给出了具体的调节方案。",
+    "highlights": [
+      "球面-抛物面变换的几何推导清晰完整",
+      "将促动器调节量最小化作为二次优化目标",
+      "建立了照射角与理想抛物面参数的函数关系",
+      "利用对称性大幅降低优化问题的规模"
+    ],
+    "structure": {
+      "organization": "摘要 → 引言 → 几何模型建立 → 球面-抛物面变换 → 促动器调节优化 → 仿真分析 → 各照射角度方案 → 模型评估",
+      "writing_style": "严谨学术论文风格，大量三维几何推导，插图展示了空间几何关系。",
+      "model_connection": "几何模型→变换公式→优化目标→分角度求解，几何推导是灵魂，贯穿始终。",
+      "key_figures": [
+        "FAST球壳基准面与理想抛物面的空间关系图",
+        "不同照射角下反射面形变的三维曲面图",
+        "促动器调节量分布的热力图",
+        "接收效率随照射角变化的曲线"
+      ]
+    },
+    "innovation": [
+      "利用FAST的工作原理提出两步调节法（粗调+精调）",
+      "将三维问题转化为二维问题，利用旋转对称性简化计算",
+      "建立促动器数量与拟合精度的定量关系"
+    ],
+    "chart_quality": "★★★★★ — 三维图形渲染精良，几何关系示意图标注清晰，达到期刊水平",
+    "code_quality": "MATLAB + 自研几何计算库，代码模块化程度高",
+    "scoring_analysis": {
+      "modeling": "10/10 — 几何模型精确，数学推导无漏洞",
+      "solution": "9/10 — 优化算法收敛好，结果与物理预期一致",
+      "paper": "10/10 — 论文质量极高，三维图示是加分项",
+      "innovation": "9/10 — 两步调节法思路新颖"
+    },
+    "key_lessons": [
+      "国赛A题顶级论文的标准：几何推导 + 三维图示 + 优化算法",
+      "对称性简化 = 高维问题降维的经典技巧",
+      "物理类题目的论文可以引用天文/物理的专业知识增加深度",
+      "图示不是装饰，是论文的一部分——要标注清楚"
+    ]
+  },
+  {
+    "id": "mcm-2024-b-01",
+    "year": 2024,
+    "competition": "MCM",
+    "problem": "Searching for Submersibles",
+    "award": "Outstanding Winner (O奖)",
+    "team": "南京大学",
+    "abstract": "We developed a comprehensive search strategy model for locating lost submersibles in the ocean. Our approach integrates Bayesian search theory with ocean current simulation and multi-vehicle coordination. First, we built a probabilistic model of submersible drift using Monte Carlo simulation of ocean currents. Then, we formulated a sequential search plan that updates target location probabilities based on search outcomes. Finally, we optimized multi-vehicle search paths to minimize expected time to detection.",
+    "highlights": [
+      "贝叶斯搜索理论与海洋物理模型深度融合",
+      "实时更新搜索概率图（Probability Map）",
+      "多无人潜航器（AUV）协同搜索路径优化",
+      "考虑了洋流不确定性、传感器探测概率等实际因素"
+    ],
+    "structure": {
+      "organization": "Summary → Introduction → Drift Model → Search Theory → Multi-Vehicle Optimization → Sensitivity Analysis → Conclusion",
+      "writing_style": "典型美赛O奖风格：先提出总问题框架，再逐步细化各个子模型。每个模型都配流程图。",
+      "model_connection": "环境建模（洋流）→ 目标行为（漂移概率）→ 搜索策略（贝叶斯更新）→ 执行（多机协同），环环相扣。",
+      "key_figures": [
+        "洋流矢量场可视化图（带箭头）",
+        "目标位置概率分布的热力图演变动画截图",
+        "多AUV搜索路径规划图",
+        "检测概率随时间增长的曲线（搜索效率评估）",
+        "传感器参数灵敏度分析柱状图"
+      ]
+    },
+    "innovation": [
+      "将蒙特卡洛洋流模拟与贝叶斯概率更新无缝衔接",
+      "提出「期望检测时间最小化」作为搜索方案的优化目标",
+      "设计了鲁棒性指标评估不同搜索方案的抗干扰能力"
+    ],
+    "chart_quality": "★★★★★ — 顶级水平，矢量图专业度高，色彩搭配符合美赛评委审美",
+    "code_quality": "Python + MATLAB混合编程，主算法在Python中实现",
+    "scoring_analysis": {
+      "modeling": "10/10 — 模型完整，从物理到决策全链条覆盖",
+      "solution": "9/10 — 算法高效，仿真结果令人信服",
+      "paper": "10/10 — 英文写作流畅，结构清晰，Summary出彩",
+      "innovation": "9/10 — 贝叶斯搜索+多机协同在国际上也有创新性"
+    },
+    "key_lessons": [
+      "美赛O奖核心：一个亮点模型 + 一个精彩故事线 + 顶级图表",
+      "Summary是第一轮筛选的关键，要既能概括又有亮点",
+      "美赛更看重模型的故事性和实际应用价值",
+      "多机协同、贝叶斯方法、蒙特卡洛是美赛高频\"组合拳\""
+    ]
+  },
+  {
+    "id": "mcm-2023-c-01",
+    "year": 2023,
+    "competition": "MCM",
+    "problem": "Wordle Prediction",
+    "award": "Outstanding Winner (O奖)",
+    "team": "清华大学",
+    "abstract": "We developed a comprehensive model to analyze and predict player behavior in the Wordle word game. Using information theory, we quantified the information content of each guess and built a difficulty metric for Wordle puzzles. We constructed a player behavior model that predicts the distribution of number of attempts based on word difficulty and player skill. Our model achieved high accuracy in matching the reported score distribution.",
+    "highlights": [
+      "用信息熵量化每个猜测的信息量",
+      "建立了单词难度评价的多维度指标体系",
+      "将玩家行为建模为马尔可夫决策过程",
+      "大规模模拟验证了模型的预测能力"
+    ],
+    "structure": {
+      "organization": "Summary → Problem Background → Information Analysis → Difficulty Metric → Player Behavior Model → Validation → Conclusion",
+      "writing_style": "从简单到复杂，先建立直觉理解再引入数学形式化。每个小节以「So What」结尾说明该部分的意义。",
+      "model_connection": "单词→信息量→难度评分→玩家行为预测，数学主线清晰。",
+      "key_figures": [
+        "各字母在Wordle词库中出现频率的分布图",
+        "不同策略下信息熵累计曲线",
+        "单词难度分数分布直方图",
+        "模型预测与实际数据的拟合对比图"
+      ]
+    },
+    "innovation": [
+      "将信息论首次系统应用于Wordle难度分析",
+      "建立了玩家策略多样性的概率模型",
+      "提出了网格搜索法确定最佳初始单词"
+    ],
+    "chart_quality": "★★★★☆ — 信息可视化专业，但部分曲线线型区分度不高",
+    "code_quality": "Python + 模拟引擎，对Wordle词库进行了完整分析",
+    "scoring_analysis": {
+      "modeling": "9/10 — 信息论在游戏分析中的应用自然恰当",
+      "solution": "9/10 — 模拟结果与公开数据高度一致",
+      "paper": "9/10 — 写作清晰，论证层层递进",
+      "innovation": "8/10 — 信息论应用有新意，但模型本身不复杂"
+    },
+    "key_lessons": [
+      "美赛数据题（C题）可以用简洁的方法做出精彩的分析",
+      "模拟验证 + 实际数据对比 = 说服力的保证",
+      "将日常问题转化为信息/决策问题是美赛喜欢的思路",
+      "不需要复杂模型也能拿O奖，关键是分析的深度和故事性"
+    ]
+  }
+]
